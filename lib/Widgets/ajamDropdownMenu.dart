@@ -1,19 +1,20 @@
 import 'package:ajam/main.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class AjamDropdown extends StatefulWidget {
   List<String> options;
-  AjamDropdown({@required this.options});
+  double width;
+  AjamDropdown({@required this.options, this.width});
 
   @override
-  _AjamDropdown createState() => _AjamDropdown(options: options);
+  _AjamDropdown createState() => _AjamDropdown(options: options, width: width);
 }
 
 class _AjamDropdown extends State<AjamDropdown> {
   List<String> options;
   String dropdownValue;
-  _AjamDropdown({@required this.options});
+  double width;
+  _AjamDropdown({@required this.options, this.width});
 
   @override
   void initState() {
@@ -24,27 +25,33 @@ class _AjamDropdown extends State<AjamDropdown> {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButton<String>(
-      value: dropdownValue,
-      //icon: Icon(Icons.arrow_downward),
-      iconSize: 24,
-      elevation: 16,
-      style: TextStyle(color: Colors.black),
-      underline: Container(
-        height: 2,
-        color: orange,
+    return Container(
+      padding: EdgeInsets.all(24),
+      child: DropdownButton<String>(
+        dropdownColor: Theme.of(context).primaryColor,
+        isExpanded: true,
+        value: dropdownValue,
+        items: options
+            .map(
+              (String item) => DropdownMenuItem<String>(
+                child: Text(
+                  item,
+                ),
+                value: item,
+              ),
+            )
+            .toList(),
+        isDense: true,
+        underline: Container(),
+        onChanged: (String newValue) {
+          setState(() {
+            dropdownValue = newValue;
+          });
+        },
       ),
-      onChanged: (String newValue) {
-        setState(() {
-          dropdownValue = newValue;
-        });
-      },
-      items: options.map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(50)),
+          border: Border.all(color: lightgrey)),
     );
   }
 }

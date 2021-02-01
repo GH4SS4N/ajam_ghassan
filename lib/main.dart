@@ -1,9 +1,10 @@
 import 'package:ajam/EditableMenu.dart';
 import 'package:ajam/Infopage.dart';
-import 'package:ajam/signup.dart';
+import 'package:ajam/signup/signup.dart';
+import 'package:ajam/signup/signupSteps.dart';
 import 'package:flutter/material.dart';
 
-import 'signup.dart';
+import 'signup/signup.dart';
 //import 'package:time_range_picker/time_range_picker.dart';
 
 void main() {

@@ -1,6 +1,7 @@
+import 'package:ajam/signup/signupSteps.dart';
 import 'package:flutter/material.dart';
 
-import 'main.dart';
+import '../main.dart';
 
 class Signup extends StatelessWidget {
   @override
@@ -107,7 +108,12 @@ class AccountAlertDialog extends StatelessWidget {
         ],
       ),
       content: TextField(
+        maxLength: 10,
+        maxLengthEnforced: true,
         decoration: InputDecoration(
+          prefixIcon: Icon(Icons.account_circle),
+          //icon: Icon(Icons.phone),
+          hintText: "رقم الجوال ",
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(50),
             borderSide: BorderSide(color: Theme.of(context).primaryColor),
@@ -120,7 +126,13 @@ class AccountAlertDialog extends StatelessWidget {
       ),
       actions: [
         FlatButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SignupSteps(),
+                ));
+          },
           color: darkblue,
           shape: new RoundedRectangleBorder(
             borderRadius: new BorderRadius.circular(50.0),
