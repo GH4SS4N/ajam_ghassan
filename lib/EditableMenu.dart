@@ -215,8 +215,9 @@ class _EditableMenu extends State<EditableMenu> {
             child: Padding(
               padding: const EdgeInsets.all(15.0),
               child: Container(
-                height: MediaQuery.of(context).size.height * 0.08,
-                width: MediaQuery.of(context).size.height * 0.08,
+                //alignment: Alignment.center,
+                height: 70,
+                width: 70,
                 decoration: BoxDecoration(
                     color: orange,
                     borderRadius: BorderRadius.all(Radius.circular(50))),
@@ -512,6 +513,7 @@ class _EditableMenu extends State<EditableMenu> {
                                         BorderRadius.all(Radius.circular(50))),
                                 //  color: orange,
                                 child: IconButton(
+                                  alignment: Alignment.center,
                                   onPressed: () {
                                     setState(() {
                                       editingObject = false;

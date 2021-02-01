@@ -1,7 +1,9 @@
 import 'package:ajam/EditableMenu.dart';
 import 'package:ajam/Infopage.dart';
-import 'package:ajam/Widgets/signup.dart';
+import 'package:ajam/signup.dart';
 import 'package:flutter/material.dart';
+
+import 'signup.dart';
 //import 'package:time_range_picker/time_range_picker.dart';
 
 void main() {
@@ -28,9 +30,14 @@ class MyApp extends StatelessWidget {
         );
       },
       theme: ThemeData(
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-          primaryColor: orange),
-      home: Signup(), // MyHomePage(title: 'Flutter Demo Home Page'),
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        fontFamily: 'Questv1',
+        primaryColor: orange,
+        buttonBarTheme: ButtonBarThemeData(
+          alignment: MainAxisAlignment.center,
+        ),
+      ),
+      home: Signup(), //MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
