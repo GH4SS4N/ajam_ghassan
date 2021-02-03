@@ -1,14 +1,15 @@
 import 'package:ajam/EditableMenu.dart';
 import 'package:ajam/Infopage.dart';
-import 'package:ajam/signup/signup.dart';
+import 'package:ajam/signup/MainPage.dart';
 import 'package:ajam/signup/signupSteps.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/all.dart';
 
-import 'signup/signup.dart';
+import 'signup/MainPage.dart';
 //import 'package:time_range_picker/time_range_picker.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(ProviderScope(child: MyApp()));
 }
 
 const green = Color(0xff37cb41);
@@ -18,10 +19,12 @@ const grey = Color(0xffa4a4a4);
 const darkgrey = Color(0xff707070);
 const orange = Color(0xfff16408);
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
+  Widget build(context, watch) {
+    final accountType = watch(accountTypeProvider).state;
+
     return MaterialApp(
       title: 'Flutter Demo',
       builder: (context, child) {
@@ -33,12 +36,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         visualDensity: VisualDensity.adaptivePlatformDensity,
         fontFamily: 'Questv1',
-        primaryColor: orange,
+        primaryColor: accountType == AccountType.captain ? green : orange,
         buttonBarTheme: ButtonBarThemeData(
           alignment: MainAxisAlignment.center,
         ),
       ),
-      home: Signup(), //MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MainPage(), //MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }

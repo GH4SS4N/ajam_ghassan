@@ -1,77 +1,68 @@
 //import 'dart:html';
 
+import 'dart:io';
+
 import 'package:ajam/Widgets/ajamDropdownMenu.dart';
 import 'package:ajam/main.dart';
+import 'package:ajam/signup/MainPage.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/all.dart';
 
 import '../staticData.dart';
 
-class SignupSteps extends StatefulWidget {
-  @override
-  _SignupSteps createState() => _SignupSteps();
-}
+enum SignupStep { login, form, verification, profile, done }
 
-class _SignupSteps extends State<SignupSteps> {
-  bool sms = false;
+final signupStepProvider = StateProvider<SignupStep>((ref) => SignupStep.login);
+
+//context.read(signupStepProvider).state = SignupStep.verification;
+
+class SignupSteps extends ConsumerWidget {
+  //bool signedUser = false;
+  //bool sms = false;
   String phoneNumber = "0583082201";
+  //bool info = false;
+  File file;
+  var storeKind = ['مطعم', "بقاله"];
+  String name = "غسان الغامدي";
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(context, watch) {
+    final accountType = watch(accountTypeProvider).state;
+    final signup_Step = watch(signupStepProvider).state;
     return SafeArea(
       child: Scaffold(
-        resizeToAvoidBottomInset: true,
-        resizeToAvoidBottomPadding: true,
+        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomPadding: false,
         body: Column(
           children: [
             Material(
               elevation: 5,
               child: Container(
-                height: 360,
+                height: signup_Step == SignupStep.profile ||
+                        signup_Step == SignupStep.done
+                    ? 130
+                    : 360,
                 width: double.infinity,
                 color: lightgrey,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 15),
-                      height: 60,
-                      //color: grey,
-                      child: Row(
-                        children: [
-                          IconButton(
-                            onPressed: () => Navigator.pop(context),
-                            icon: Icon(
-                              Icons.arrow_back_ios,
-                              color: orange,
-                              size: 40,
+                    AjamAppBar(),
+                    signup_Step == SignupStep.profile ||
+                            signup_Step == SignupStep.done
+                        ? Container()
+                        : SizedBox(
+                            height: 120,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset("assets/img/arabic.png"),
+                                Image.asset("assets/img/shape.png"),
+                              ],
                             ),
                           ),
-                          Expanded(
-                              child: Text(
-                            "حساب صاحب متجر",
-                            style: TextStyle(
-                                color: orange,
-                                fontFamily: "Questv1",
-                                fontSize: 20),
-                          )),
-                          Icon(
-                            Icons.store,
-                            color: orange,
-                            size: 40,
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      height: 120,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset("assets/img/arabic.png"),
-                          Image.asset("assets/img/shape.png"),
-                        ],
-                      ),
-                    ),
                     Container(
                       margin: EdgeInsets.all(20),
                       padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
@@ -82,10 +73,13 @@ class _SignupSteps extends State<SignupSteps> {
                           SizedBox(
                             width: 20,
                           ),
-                          Icon(
-                            Icons.create_rounded,
-                            color: darkgrey,
-                          )
+                          signup_Step == SignupStep.profile ||
+                                  signup_Step == SignupStep.done
+                              ? Text(name)
+                              : Icon(
+                                  Icons.create_rounded,
+                                  color: darkgrey,
+                                )
                         ],
                       ),
                       decoration: BoxDecoration(
@@ -98,212 +92,578 @@ class _SignupSteps extends State<SignupSteps> {
                 ),
               ),
             ),
-            Expanded(
-                child: sms
-                    ? SizedBox(
-                        child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 30),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              SizedBox(),
-                              Text("تم ارسال رمز التفعيل الى هاتفك "),
-                              Container(
-                                child: Column(
-                                  children: [
-                                    TextField(
-                                      decoration: InputDecoration(
-                                        prefixIcon: Icon(Icons.phone_android),
-                                        //icon: Icon(Icons.phone),
-                                        hintText: "رمز التفعيل ",
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(50),
-                                          borderSide: BorderSide(
-                                              color: Theme.of(context)
-                                                  .primaryColor),
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(50),
-                                          borderSide:
-                                              BorderSide(color: lightgrey),
-                                        ),
-                                      ),
-                                    ),
-                                    TextButton(
-                                        onPressed: () {
-                                          sms = false;
-                                          setState(() {});
-                                        },
-                                        child: Text('اعاده ارسال '))
-                                  ],
-                                ),
-                              ),
-                              InkWell(
-                                onTap: () {},
-                                child: Container(
-                                  //width: ,
-                                  height: 60,
-                                  margin: EdgeInsets.all(20),
-                                  padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        " تسجيل ",
-                                        style: TextStyle(
-                                            color: Colors.white, fontSize: 20),
-                                      ),
-                                    ],
-                                  ),
-                                  decoration: BoxDecoration(
-                                      color: darkblue,
-                                      border: Border(),
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(50))),
-                                  //color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : SingleChildScrollView(
-                        child: Container(
-                          padding: EdgeInsets.all(30),
-                          child: Column(
-                            children: [
-                              TextFormField(
-                                // maxLength: 10,
-                                // maxLengthEnforced: true,
-                                decoration: InputDecoration(
-                                  prefixIcon: Icon(Icons.account_circle),
-                                  //icon: Icon(Icons.phone),
-                                  hintText: "الاسم الكامل ",
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(50),
-                                    borderSide: BorderSide(
-                                        color: Theme.of(context).primaryColor),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(50),
-                                    borderSide: BorderSide(color: lightgrey),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                height: 30,
-                              ),
-                              //password\
-                              TextFormField(
-                                // maxLength: 10,
-                                // maxLengthEnforced: true,
-                                decoration: InputDecoration(
-                                  prefixIcon: Icon(Icons.lock),
-                                  //icon: Icon(Icons.phone),
-                                  hintText: "كلمه المرور ",
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(50),
-                                    borderSide: BorderSide(
-                                        color: Theme.of(context).primaryColor),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(50),
-                                    borderSide: BorderSide(color: lightgrey),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                height: 30,
-                              ),
-                              // another password
-                              TextFormField(
-                                // maxLength: 10,
-                                // maxLengthEnforced: true,
-                                decoration: InputDecoration(
-                                  prefixIcon: Icon(Icons.lock_outline),
-                                  hintText: "تاكيد كلمه المرور",
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(50),
-                                    borderSide: BorderSide(
-                                        color: Theme.of(context).primaryColor),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(50),
-                                    borderSide: BorderSide(color: lightgrey),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                height: 30,
-                              ),
-
-                              //dropdown (countries)
-                              AjamDropdown(options: countries),
-                              SizedBox(
-                                height: 30,
-                              ),
-                              //contries dropDown
-                              AjamDropdown(options: cities),
-                              SizedBox(
-                                height: 30,
-                              ),
-                              //email
-                              TextFormField(
-                                // maxLength: 10,
-                                // maxLengthEnforced: true,
-                                decoration: InputDecoration(
-                                  prefixIcon: Icon(Icons.email),
-                                  //icon: Icon(Icons.phone),
-                                  hintText: "البريد الالكتروني (اختياري) ",
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(50),
-                                    borderSide: BorderSide(
-                                        color: Theme.of(context).primaryColor),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(50),
-                                    borderSide: BorderSide(color: lightgrey),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                height: 30,
-                              ),
-                              InkWell(
-                                onTap: () {
-                                  sms = true;
-                                  setState(() {});
-                                },
-                                child: Container(
-                                  //width: ,
-                                  height: 60,
-                                  margin: EdgeInsets.all(20),
-                                  padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        " التالي ",
-                                        style: TextStyle(
-                                            color: Colors.white, fontSize: 20),
-                                      ),
-                                    ],
-                                  ),
-                                  decoration: BoxDecoration(
-                                      color: darkblue,
-                                      border: Border(),
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(50))),
-                                  //color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ))
+            signup_Step == SignupStep.login ||
+                    signup_Step == SignupStep.verification
+                ? signup_Step == SignupStep.login
+                    ? Ajamlogin()
+                    : AjamVerification()
+                : signup_Step == SignupStep.profile ||
+                        signup_Step == SignupStep.done
+                    ? signup_Step == SignupStep.done
+                        ? AjamDone()
+                        : AjamProfile()
+                    : signup_Step == SignupStep.verification
+                        ? AjamVerification()
+                        : AjamForm()
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class AjamVerification extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, ScopedReader watch) {
+    final accountType = watch(accountTypeProvider).state;
+    return Expanded(
+      child: Padding(
+        padding: EdgeInsets.all(30),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            SizedBox(),
+            Text("تم ارسال رمز التفعيل الى هاتفك "),
+            Container(
+              child: Column(
+                children: [
+                  TextField(
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.phone_android),
+                      //icon: Icon(Icons.phone),
+                      hintText: "رمز التفعيل ",
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(50),
+                        borderSide:
+                            BorderSide(color: Theme.of(context).primaryColor),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(50),
+                        borderSide: BorderSide(color: lightgrey),
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                      onPressed: () {
+                        context.read(signupStepProvider).state =
+                            SignupStep.form;
+                      },
+                      child: Text('اعاده ارسال '))
+                ],
+              ),
+            ),
+            InkWell(
+              onTap: () {
+                context.read(signupStepProvider).state = SignupStep.profile;
+              },
+              child: Container(
+                //width: ,
+                height: 60,
+                margin: EdgeInsets.all(20),
+                padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      " تسجيل ",
+                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    ),
+                  ],
+                ),
+                decoration: BoxDecoration(
+                    color: darkblue,
+                    border: Border(),
+                    borderRadius: BorderRadius.all(Radius.circular(50))),
+                //color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class Ajamlogin extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, ScopedReader watch) {
+    final accountType = watch(accountTypeProvider).state;
+    return Expanded(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 30),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            SizedBox(),
+            Text("تم ارسال رمز التفعيل الى هاتفك "),
+            Container(
+              // color: orange,
+              child: Column(
+                children: [
+                  TextFormField(
+                    // maxLength: 10,
+                    // maxLengthEnforced: true,
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.lock),
+                      //icon: Icon(Icons.phone),
+                      hintText: "كلمه المرور ",
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(50),
+                        borderSide:
+                            BorderSide(color: Theme.of(context).primaryColor),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(50),
+                        borderSide: BorderSide(color: lightgrey),
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                      onPressed: () {
+                        context.read(signupStepProvider).state =
+                            SignupStep.form;
+                      },
+                      child: Text('هل نسيت كلمه المرور؟')),
+                  SizedBox(
+                    height: 1,
+                  )
+                ],
+              ),
+            ),
+            InkWell(
+              onTap: () {
+                context.read(signupStepProvider).state =
+                    SignupStep.verification;
+              },
+              child: Container(
+                //width: ,
+                height: 60,
+                margin: EdgeInsets.all(20),
+                padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      " تسجيل ",
+                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    ),
+                  ],
+                ),
+                decoration: BoxDecoration(
+                    color: darkblue,
+                    border: Border(),
+                    borderRadius: BorderRadius.all(Radius.circular(50))),
+                //color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    ;
+  }
+}
+
+class AjamProfile extends ConsumerWidget {
+  File file;
+
+  Future<void> filePicker() async {
+    FilePickerResult result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg'],
+    );
+
+    if (result != null) {
+      file = File(result.files.single.path);
+      // state provider for the images
+      print(file.toString());
+    } else {
+      // User canceled the picker
+    }
+    //
+  }
+
+  @override
+  Widget build(BuildContext context, ScopedReader watch) {
+    final accountType = watch(accountTypeProvider).state;
+    return Expanded(
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 30),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              margin: EdgeInsets.fromLTRB(0, 30, 0, 0),
+              child: Column(
+                children: [
+                  Text("لنقم باضافة بعض معلومات المتجر"),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  Container(
+                    width: 80,
+                    // color: Colors.red,
+                    child: Stack(
+                      children: [
+                        ClipOval(
+                          child: CircleAvatar(
+                              minRadius: 35,
+                              backgroundColor: darkblue,
+                              child: file == null
+                                  ? Container()
+                                  : SizedBox(
+                                      child: Image.file(
+                                        file,
+                                        fit: BoxFit.fill,
+                                      ),
+                                      height: 80,
+                                      width: 80,
+                                    )),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          child: Container(
+                            height: 20,
+                            width: 20,
+                            padding: EdgeInsets.fromLTRB(2, 0, 0, 2),
+                            child: IconButton(
+                                //iconSize: 15,
+                                color: orange,
+                                icon: Icon(
+                                  Icons.create_sharp,
+                                  size: 10,
+                                ),
+                                onPressed: () {
+                                  filePicker();
+                                }),
+                            decoration: BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 2,
+                                    blurRadius: 7,
+                                    offset: Offset(
+                                        0, 3), // changes position of shadow
+                                  ),
+                                ],
+                                color: Colors.white,
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(50))),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text("الشعار (اختياري)"),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  TextFormField(
+                    // maxLength: 10,
+                    // maxLengthEnforced: true,
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.store),
+                      hintText: "اسم المتجر",
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(50),
+                        borderSide:
+                            BorderSide(color: Theme.of(context).primaryColor),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(50),
+                        borderSide: BorderSide(color: lightgrey),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 30,
+                  ),
+
+                  //dropdown (countries)
+                  AjamDropdown(options: ['fghf', "dfgdfg"]),
+                  // Expanded(child: null),
+                ],
+              ),
+            ),
+            InkWell(
+              onTap: () {
+                context.read(signupStepProvider).state = SignupStep.done;
+              },
+              child: Container(
+                //width: ,
+                height: 60,
+                margin: EdgeInsets.all(20),
+                padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      " حفظ ",
+                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    ),
+                  ],
+                ),
+                decoration: BoxDecoration(
+                    color: darkblue,
+                    border: Border(),
+                    borderRadius: BorderRadius.all(Radius.circular(50))),
+                //color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class AjamDone extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, ScopedReader watch) {
+    final accountType = watch(accountTypeProvider).state;
+    return Expanded(
+        child: Container(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Container(
+            child: Column(
+              children: [
+                Icon(
+                  Icons.check_circle,
+                  color: Theme.of(context).primaryColor,
+                  size: 50,
+                ),
+                SizedBox(
+                  height: 30,
+                ),
+                Text(
+                  "تم حفظ بيانات متجرك بنجاح",
+                  style: TextStyle(fontSize: 20, color: darkblue),
+                )
+              ],
+            ),
+          ),
+          Container(
+            child: Column(
+              children: [
+                Text(
+                  "نقوم الان بتسجيل الشركاء وبناء قاعدة البايانات",
+                  style: TextStyle(color: darkgrey),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                Text("ترقبو افتتاح المتاجر بتاريخ 15\2\2021",
+                    style: TextStyle(color: darkgrey))
+              ],
+            ),
+          ),
+          Container()
+        ],
+      ),
+    ));
+  }
+}
+
+class AjamAppBar extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, ScopedReader watch) {
+    final accountType = watch(accountTypeProvider).state;
+    final signup_Step = watch(signupStepProvider).state;
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 15),
+      height: 60,
+      child: Row(
+        children: [
+          signup_Step == SignupStep.form ||
+                  signup_Step == SignupStep.verification
+              ? IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: Icon(
+                    Icons.arrow_back_ios,
+                    color: Theme.of(context).primaryColor,
+                    size: 40,
+                  ),
+                )
+              : IconButton(
+                  onPressed: () {
+                    context.read(signupStepProvider).state = SignupStep.form;
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(
+                    Icons.logout,
+                    color: Theme.of(context).primaryColor,
+                    size: 40,
+                  ),
+                ),
+          Expanded(
+              child: accountType == AccountType.owner
+                  ? Text(
+                      "حساب صاحب متجر",
+                      style: TextStyle(
+                          color: Theme.of(context).primaryColor,
+                          fontFamily: "Questv1",
+                          fontSize: 20),
+                    )
+                  : Text(
+                      "حساب كابتن",
+                      style: TextStyle(
+                          color: Theme.of(context).primaryColor,
+                          fontFamily: "Questv1",
+                          fontSize: 20),
+                    )),
+          Icon(
+            accountType == AccountType.owner
+                ? Icons.store
+                : Icons.directions_car,
+            color: Theme.of(context).primaryColor,
+            size: 40,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AjamForm extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, ScopedReader watch) {
+    final accountType = watch(accountTypeProvider).state;
+
+    return Expanded(
+      child: SingleChildScrollView(
+        child: Container(
+          padding: EdgeInsets.all(30),
+          child: Column(
+            children: [
+              TextFormField(
+                // maxLength: 10,
+                // maxLengthEnforced: true,
+                decoration: InputDecoration(
+                  prefixIcon: Icon(Icons.account_circle),
+                  //icon: Icon(Icons.phone),
+                  hintText: "الاسم الكامل ",
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide:
+                        BorderSide(color: Theme.of(context).primaryColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: BorderSide(color: lightgrey),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 30,
+              ),
+              //password\
+              TextFormField(
+                // maxLength: 10,
+                // maxLengthEnforced: true,
+                decoration: InputDecoration(
+                  prefixIcon: Icon(Icons.lock),
+                  //icon: Icon(Icons.phone),
+                  hintText: "كلمه المرور ",
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide:
+                        BorderSide(color: Theme.of(context).primaryColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: BorderSide(color: lightgrey),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 30,
+              ),
+              // another password
+              TextFormField(
+                // maxLength: 10,
+                // maxLengthEnforced: true,
+                decoration: InputDecoration(
+                  prefixIcon: Icon(Icons.lock_outline),
+                  hintText: "تاكيد كلمه المرور",
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide:
+                        BorderSide(color: Theme.of(context).primaryColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: BorderSide(color: lightgrey),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 30,
+              ),
+
+              //dropdown (countries)
+              AjamDropdown(options: countries),
+              SizedBox(
+                height: 30,
+              ),
+              //contries dropDown
+              AjamDropdown(options: cities),
+              SizedBox(
+                height: 30,
+              ),
+              //email
+              TextFormField(
+                // maxLength: 10,
+                // maxLengthEnforced: true,
+                decoration: InputDecoration(
+                  prefixIcon: Icon(Icons.email),
+                  //icon: Icon(Icons.phone),
+                  hintText: "البريد الالكتروني (اختياري) ",
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide:
+                        BorderSide(color: Theme.of(context).primaryColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: BorderSide(color: lightgrey),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 30,
+              ),
+              InkWell(
+                onTap: () {
+                  context.read(signupStepProvider).state =
+                      SignupStep.verification;
+                },
+                child: Container(
+                  //width: ,
+                  height: 60,
+                  margin: EdgeInsets.all(20),
+                  padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        " التالي ",
+                        style: TextStyle(color: Colors.white, fontSize: 20),
+                      ),
+                    ],
+                  ),
+                  decoration: BoxDecoration(
+                      color: darkblue,
+                      border: Border(),
+                      borderRadius: BorderRadius.all(Radius.circular(50))),
+                  //color: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

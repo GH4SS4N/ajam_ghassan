@@ -1,9 +1,16 @@
 import 'package:ajam/signup/signupSteps.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../main.dart';
 
-class Signup extends StatelessWidget {
+enum AccountType { captain, owner, none }
+
+final accountTypeProvider =
+    StateProvider<AccountType>((ref) => AccountType.none);
+
+class MainPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -43,14 +50,6 @@ class Signup extends StatelessWidget {
 }
 
 class AccountTypeList extends StatelessWidget {
-  Future<void> _showMyDialog(context) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: true, // user must tap button!
-      builder: (BuildContext context) => AccountAlertDialog(),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -74,7 +73,7 @@ class AccountTypeList extends StatelessWidget {
                 body:
                     "اقترب من عملائك , وضاعف المبيعات , ودعنا نهتم بالتوصيل .",
                 iconData: Icons.store,
-                onTap: _showMyDialog,
+                accountType: AccountType.owner,
               ),
               AccountTypeCard(
                 imageName: "assets/img/captain.png",
@@ -82,7 +81,7 @@ class AccountTypeList extends StatelessWidget {
                 header: "كابتن",
                 body: "اختر رحلات توصيل المنتجات حسب المسافة والسعر بكل ثقة .",
                 iconData: Icons.directions_car,
-                onTap: _showMyDialog,
+                accountType: AccountType.captain,
               )
             ],
           ),
@@ -92,18 +91,23 @@ class AccountTypeList extends StatelessWidget {
   }
 }
 
-class AccountAlertDialog extends StatelessWidget {
+class AccountAlertDialog extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ScopedReader watch) {
+    final accountType = watch(accountTypeProvider).state;
+
     return AlertDialog(
       contentPadding: EdgeInsets.only(right: 12, left: 12, top: 12),
       title: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.login, color: orange, size: 50),
+          Icon(Icons.login, color: Theme.of(context).primaryColor, size: 50),
           Text(
-            "انشاء حساب صاحب المتجر",
-            style: TextStyle(color: orange, fontSize: 20),
+            accountType == AccountType.owner
+                ? "انشاء حساب صاحب المتجر"
+                : "انشاء حساب كابتن",
+            style:
+                TextStyle(color: Theme.of(context).primaryColor, fontSize: 20),
           ),
         ],
       ),
@@ -127,6 +131,7 @@ class AccountAlertDialog extends StatelessWidget {
       actions: [
         FlatButton(
           onPressed: () {
+            Navigator.pop(context);
             Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -177,27 +182,33 @@ class Header extends StatelessWidget {
 }
 
 class AccountTypeCard extends StatelessWidget {
+  final AccountType accountType;
   final IconData iconData;
   final String header;
   final String body;
   final String imageName;
   final Color color;
-  final Function onTap;
 
   AccountTypeCard({
+    this.accountType,
     this.imageName,
     this.iconData,
     this.header,
     this.body,
     this.color,
-    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     // constrain the width of the card
     return InkWell(
-      onTap: () => onTap(context),
+      onTap: () {
+        context.read(accountTypeProvider).state = accountType;
+        showDialog(
+          context: context,
+          builder: (_) => AccountAlertDialog(),
+        );
+      },
       child: SizedBox(
         width: 300,
         // cards are like container but with elevation maybe
@@ -249,7 +260,7 @@ class AccountTypeCard extends StatelessWidget {
                     ),
                     // this icon has a fixed size. While its sibling, the
                     // expanded widget, will fill the remaining space
-                    Icon(Icons.store, size: 60, color: Colors.white),
+                    Icon(this.iconData, size: 60, color: Colors.white),
                   ],
                 ),
               )

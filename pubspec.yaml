@@ -13,6 +13,8 @@ dependencies:
     sdk: flutter
   time_range_picker: ^1.1.1
   file_picker: ^2.1.6
+  flutter_riverpod:
+  parse_server_sdk: ^2.0.1
 
   cupertino_icons: ^1.0.0
 
