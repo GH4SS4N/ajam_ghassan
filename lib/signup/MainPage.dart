@@ -1,6 +1,7 @@
 import 'package:ajam/signup/signupSteps.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../main.dart';
@@ -112,6 +113,10 @@ class AccountAlertDialog extends ConsumerWidget {
         ],
       ),
       content: TextField(
+        keyboardType: TextInputType.number,
+        inputFormatters: <TextInputFormatter>[
+          FilteringTextInputFormatter.digitsOnly
+        ], // Only numbers can be entered
         maxLength: 10,
         maxLengthEnforced: true,
         decoration: InputDecoration(
