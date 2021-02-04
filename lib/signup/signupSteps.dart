@@ -67,7 +67,7 @@ class SignupSteps extends ConsumerWidget {
                             width: 20,
                           ),
                           step == SignupStep.profile || step == SignupStep.done
-                              ? Text(currentUser.get("name"))
+                              ? Text(currentUser.get("name") ?? "")
                               : Icon(
                                   Icons.create_rounded,
                                   color: darkgrey,
@@ -304,132 +304,139 @@ class AjamProfile extends ConsumerWidget {
     return Expanded(
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 30),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              margin: EdgeInsets.fromLTRB(0, 30, 0, 0),
-              child: Column(
-                children: [
-                  Text("لنقم باضافة بعض معلومات المتجر"),
-                  SizedBox(
-                    height: 30,
-                  ),
-                  Container(
-                    width: 80,
-                    // color: Colors.red,
-                    child: Stack(
-                      children: [
-                        ClipOval(
-                          child: CircleAvatar(
-                              minRadius: 35,
-                              backgroundColor: darkblue,
-                              child: file == null
-                                  ? Container()
-                                  : SizedBox(
-                                      child: Image.file(
-                                        file,
-                                        fit: BoxFit.fill,
-                                      ),
-                                      height: 80,
-                                      width: 80,
-                                    )),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          child: Container(
-                            height: 20,
-                            width: 20,
-                            padding: EdgeInsets.fromLTRB(2, 0, 0, 2),
-                            child: IconButton(
-                                //iconSize: 15,
-                                color: orange,
-                                icon: Icon(
-                                  Icons.create_sharp,
-                                  size: 10,
-                                ),
-                                onPressed: () {
-                                  filePicker();
-                                }),
-                            decoration: BoxDecoration(
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
-                                    spreadRadius: 2,
-                                    blurRadius: 7,
-                                    offset: Offset(
-                                        0, 3), // changes position of shadow
-                                  ),
-                                ],
-                                color: Colors.white,
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(50))),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Text("الشعار (اختياري)"),
-                  SizedBox(
-                    height: 30,
-                  ),
-                  TextFormField(
-                    // maxLength: 10,
-                    // maxLengthEnforced: true,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.store),
-                      hintText: "اسم المتجر",
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(50),
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(50),
-                        borderSide: BorderSide(color: lightgrey),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 30,
-                  ),
-
-                  //dropdown (countries)
-                  AjamDropdown(
-                    optionsState: storeTypesProvider,
-                    selectedState: storeTypeSelectedProvider,
-                  ),
-                  // Expanded(child: null),
-                ],
-              ),
-            ),
-            InkWell(
-              onTap: () {
-                context.read(signupStepProvider).state = SignupStep.done;
-              },
-              child: Container(
-                //width: ,
-                height: 60,
-                margin: EdgeInsets.all(20),
-                padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+        child: watch(storeTypesProvider).when(
+          data: (storeTypes) => Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                margin: EdgeInsets.fromLTRB(0, 30, 0, 0),
+                child: Column(
                   children: [
-                    Text(
-                      " حفظ ",
-                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    Text("لنقم باضافة بعض معلومات المتجر"),
+                    SizedBox(
+                      height: 30,
                     ),
+                    Container(
+                      width: 80,
+                      // color: Colors.red,
+                      child: Stack(
+                        children: [
+                          ClipOval(
+                            child: CircleAvatar(
+                                minRadius: 35,
+                                backgroundColor: darkblue,
+                                child: file == null
+                                    ? Container()
+                                    : SizedBox(
+                                        child: Image.file(
+                                          file,
+                                          fit: BoxFit.fill,
+                                        ),
+                                        height: 80,
+                                        width: 80,
+                                      )),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            child: Container(
+                              height: 20,
+                              width: 20,
+                              padding: EdgeInsets.fromLTRB(2, 0, 0, 2),
+                              child: IconButton(
+                                  //iconSize: 15,
+                                  color: orange,
+                                  icon: Icon(
+                                    Icons.create_sharp,
+                                    size: 10,
+                                  ),
+                                  onPressed: () {
+                                    filePicker();
+                                  }),
+                              decoration: BoxDecoration(
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.5),
+                                      spreadRadius: 2,
+                                      blurRadius: 7,
+                                      offset: Offset(
+                                          0, 3), // changes position of shadow
+                                    ),
+                                  ],
+                                  color: Colors.white,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(50))),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text("الشعار (اختياري)"),
+                    SizedBox(
+                      height: 30,
+                    ),
+                    TextFormField(
+                      // maxLength: 10,
+                      // maxLengthEnforced: true,
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.store),
+                        hintText: "اسم المتجر",
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(50),
+                          borderSide:
+                              BorderSide(color: Theme.of(context).primaryColor),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(50),
+                          borderSide: BorderSide(color: lightgrey),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 30,
+                    ),
+
+                    //dropdown (countries)
+                    AjamDropdown(
+                      options: storeTypes,
+                      selectedState: storeTypeSelectedProvider,
+                    ),
+                    // Expanded(child: null),
                   ],
                 ),
-                decoration: BoxDecoration(
-                    color: darkblue,
-                    border: Border(),
-                    borderRadius: BorderRadius.all(Radius.circular(50))),
-                //color: Colors.white,
               ),
-            ),
-          ],
+              InkWell(
+                onTap: () {
+                  context.read(signupStepProvider).state = SignupStep.done;
+                },
+                child: Container(
+                  //width: ,
+                  height: 60,
+                  margin: EdgeInsets.all(20),
+                  padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        " حفظ ",
+                        style: TextStyle(color: Colors.white, fontSize: 20),
+                      ),
+                    ],
+                  ),
+                  decoration: BoxDecoration(
+                      color: darkblue,
+                      border: Border(),
+                      borderRadius: BorderRadius.all(Radius.circular(50))),
+                  //color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          error: (e, stack) {
+            exceptionSnackbar(context, e);
+            return Center(child: Icon(Icons.error));
+          },
+          loading: () => Center(child: CircularProgressIndicator()),
         ),
       ),
     );
@@ -656,10 +663,9 @@ class AjamForm extends ConsumerWidget {
                 SizedBox(
                   height: 30,
                 ),
-
                 //dropdown (countries)
                 AjamDropdown(
-                  staticOptions: countries,
+                  options: countries,
                   selectedState: countrySelectedProvider,
                 ),
                 SizedBox(
@@ -667,7 +673,7 @@ class AjamForm extends ConsumerWidget {
                 ),
                 //contries dropDown
                 AjamDropdown(
-                  staticOptions: cities,
+                  options: cities,
                   selectedState: citySelectedProvider,
                 ),
                 SizedBox(
