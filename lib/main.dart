@@ -29,6 +29,7 @@ class MyApp extends ConsumerWidget {
     final accountType = watch(accountTypeProvider).state;
 
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       builder: (context, child) {
         return Directionality(
@@ -119,7 +120,7 @@ class MyHomePage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        "نقوم الان بتسجيل الشركاء و بناء قاعدة البيانات ",
+                        "نقوم الآن بتسجيل الشركاء و بناء قاعدة البيانات ",
                         style: TextStyle(fontSize: 20),
                       ),
                       Text(

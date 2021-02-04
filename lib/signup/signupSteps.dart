@@ -62,16 +62,13 @@ class SignupSteps extends ConsumerWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(currentUser.username),
+                          step == SignupStep.profile || step == SignupStep.done
+                              ? Text(currentUser.get("name") ?? "")
+                              : [],
                           SizedBox(
                             width: 20,
                           ),
-                          step == SignupStep.profile || step == SignupStep.done
-                              ? Text(currentUser.get("name") ?? "")
-                              : Icon(
-                                  Icons.create_rounded,
-                                  color: darkgrey,
-                                )
+                          Text(currentUser.username),
                         ],
                       ),
                       decoration: BoxDecoration(
@@ -460,6 +457,14 @@ class OwnerDone extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                "شريكنا العزيز لعرض منتجاتك بشكل أفضل نود منك تحميل صور المنتج بشكل واضح وبخلفية بيضاء وسوف نساعدك على تحسينها وعرضها بشكل رائع",
+                style: TextStyle(color: darkgrey),
+                textAlign: TextAlign.center,
+              ),
+            ),
             SizedBox(
               height: 275,
               child: ListView(
@@ -486,23 +491,6 @@ class OwnerDone extends StatelessWidget {
                 ],
               ),
             ),
-            Container(
-              padding: EdgeInsets.fromLTRB(0, 0, 0, 13),
-              child: Column(
-                children: [
-                  Text(
-                    "نقوم الان بتسجيل الشركاء وبناء قاعدة البايانات",
-                    style: TextStyle(color: darkgrey),
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Text("ترقبو افتتاح المتاجر بتاريخ 15\2\2021",
-                      style: TextStyle(color: darkgrey))
-                ],
-              ),
-            ),
-            Container()
           ],
         ),
       ),
