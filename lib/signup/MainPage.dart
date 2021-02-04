@@ -11,7 +11,7 @@ import '../main.dart';
 enum AccountType { captain, owner, none }
 
 final accountTypeProvider =
-    StateProvider<AccountType>((ref) => AccountType.none);
+    StateProvider<AccountType>((ref) => AccountType.owner);
 
 class MainPage extends StatelessWidget {
   @override
@@ -28,7 +28,7 @@ class MainPage extends StatelessWidget {
               ConstrainedBox(constraints: BoxConstraints(maxHeight: 24)),
               Header(),
               Text(
-                "نقوم الان بتسجيل الشركاء و بناء قاعدة البيانات\nترقبوا افتتاح المتاجر بتاريخ 15/2/2021",
+                "نقوم الآن بتسجيل الشركاء و بناء قاعدة البيانات\nترقبوا افتتاح المتاجر بتاريخ 15/2/2021",
                 style: TextStyle(color: darkgrey),
                 textAlign: TextAlign.center,
               ),
