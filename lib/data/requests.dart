@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 
 final currentUserProvider =
-    StateProvider<ParseUser>((ref) => ParseUser("", "", ""));
+    StateProvider<ParseUser>((ref) => ParseUser("123456789", "", ""));
 
 final otpPassword = StateProvider<String>((ref) => "");
 

@@ -11,27 +11,21 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/all.dart';
+import 'package:parse_server_sdk/parse_server_sdk.dart';
 
 import '../staticData.dart';
 
 enum SignupStep { login, form, verification, profile, done }
 
-final signupStepProvider = StateProvider<SignupStep>((ref) => SignupStep.login);
+final signupStepProvider = StateProvider<SignupStep>((ref) => SignupStep.form);
 
 //context.read(signupStepProvider).state = SignupStep.verification;
 
 class SignupSteps extends ConsumerWidget {
-  //bool signedUser = false;
-  //bool sms = false;
-  String phoneNumber = "0583082201";
-  //bool info = false;
-  File file;
-  String name = "غسان الغامدي";
-
   @override
   Widget build(context, watch) {
     final step = watch(signupStepProvider).state;
-    final phoneNumber = watch(currentUserProvider).state.username;
+    final currentUser = watch(currentUserProvider).state;
 
     return SafeArea(
       child: Scaffold(
@@ -69,12 +63,12 @@ class SignupSteps extends ConsumerWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(phoneNumber),
+                          Text(currentUser.username),
                           SizedBox(
                             width: 20,
                           ),
                           step == SignupStep.profile || step == SignupStep.done
-                              ? Text(name)
+                              ? Text(currentUser.get("name"))
                               : Icon(
                                   Icons.create_rounded,
                                   color: darkgrey,
@@ -119,14 +113,13 @@ class AjamVerification extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             SizedBox(),
-            Text("تم ارسال رمز التفعيل الى هاتفك "),
+            Text("تم إرسال رمز تفعيل إلى هاتفك "),
             Container(
               child: Column(
                 children: [
                   TextField(
                     decoration: InputDecoration(
                       prefixIcon: Icon(Icons.phone_android),
-                      //icon: Icon(Icons.phone),
                       hintText: "رمز التفعيل ",
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(50),
@@ -161,7 +154,7 @@ class AjamVerification extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      " تسجيل ",
+                      "تسجيل",
                       style: TextStyle(color: Colors.white, fontSize: 20),
                     ),
                   ],
@@ -183,20 +176,23 @@ class AjamVerification extends ConsumerWidget {
 class Ajamlogin extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ScopedReader watch) {
-    final accountType = watch(accountTypeProvider).state;
+    final loading = watch(loadingProvider).state;
+
     return Expanded(
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 30),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            SizedBox(),
-            Text("تم ارسال رمز التفعيل الى هاتفك "),
+            Spacer(),
             Container(
               // color: orange,
               child: Column(
                 children: [
                   TextFormField(
+                    obscureText: true,
+                    onChanged: (text) =>
+                        context.read(currentUserProvider).state.password = text,
                     // maxLength: 10,
                     // maxLengthEnforced: true,
                     decoration: InputDecoration(
@@ -214,35 +210,54 @@ class Ajamlogin extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  TextButton(
-                      onPressed: () {
-                        context.read(signupStepProvider).state =
-                            SignupStep.form;
-                      },
-                      child: Text('هل نسيت كلمه المرور؟')),
-                  SizedBox(
-                    height: 1,
-                  )
                 ],
               ),
             ),
+            Spacer(),
             InkWell(
               onTap: () {
-                context.read(signupStepProvider).state =
-                    SignupStep.verification;
+                // set loading to true
+                context.read(loadingProvider).state = true;
+
+                // login current user
+                login(context.read(currentUserProvider).state)
+                    // then update the user and request OTP
+                    .then(
+                      (loggedUser) {
+                        context.read(currentUserProvider).state = loggedUser;
+
+                        return otpRequest(loggedUser.username);
+                      },
+                    )
+                    // then to the verification step
+                    .then((nothing) => context.read(signupStepProvider).state =
+                        SignupStep.verification)
+                    // if there was an error loging-in or requesting an OTP
+                    .catchError((e) async {
+                      // check if the user was logged in
+                      if (await ParseUser.currentUser() != null)
+                        // log them out
+                        logout(context.read(currentUserProvider).state);
+                      // then throw the error
+                      exceptionSnackbar(context, e);
+                    })
+                    // when everything is done, set loading to false
+                    .whenComplete(
+                        () => context.read(loadingProvider).state = false);
               },
               child: Container(
-                //width: ,
                 height: 60,
                 margin: EdgeInsets.all(20),
                 padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      " تسجيل ",
-                      style: TextStyle(color: Colors.white, fontSize: 20),
-                    ),
+                    loading
+                        ? CircularProgressIndicator()
+                        : Text(
+                            "تسجيل الدخول",
+                            style: TextStyle(color: Colors.white, fontSize: 20),
+                          ),
                   ],
                 ),
                 decoration: BoxDecoration(

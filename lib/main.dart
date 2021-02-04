@@ -6,6 +6,7 @@ import 'package:ajam/signup/MainPage.dart';
 import 'package:ajam/signup/signupSteps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/all.dart';
+import 'package:parse_server_sdk/parse_server_sdk.dart';
 
 import 'signup/MainPage.dart';
 //import 'package:time_range_picker/time_range_picker.dart';
@@ -44,7 +45,7 @@ class MyApp extends ConsumerWidget {
         ),
       ),
       home: watch(connectionProvider).when(
-        data: (parse) => MainPage(),
+        data: (parse) => SignupSteps(),
         loading: () =>
             Container(child: Center(child: CircularProgressIndicator())),
         error: (e, stack) {
