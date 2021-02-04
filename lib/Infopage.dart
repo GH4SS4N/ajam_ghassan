@@ -229,7 +229,7 @@ class _InfoPage extends State<InfoPage> {
                             child: Padding(
                                 padding:
                                     const EdgeInsets.fromLTRB(25, 10, 25, 0),
-                                child: AjamDropdown(staticOptions: [
+                                child: AjamDropdown(options: [
                                   'سفر',
                                   'بنشري',
                                   'بقايل',

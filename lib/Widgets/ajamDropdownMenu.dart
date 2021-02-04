@@ -1,4 +1,3 @@
-import 'package:ajam/data/Exceptions.dart';
 import 'package:ajam/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/all.dart';
@@ -8,25 +7,14 @@ final countrySelectedProvider = StateProvider<String>((ref) => "السعودية
 final citySelectedProvider = StateProvider<String>((ref) => "جدة");
 
 class AjamDropdown extends ConsumerWidget {
-  final FutureProvider optionsState;
   final StateProvider selectedState;
-  final List<String> staticOptions;
+  final List<String> options;
 
-  AjamDropdown(
-      {this.optionsState, @required this.selectedState, this.staticOptions});
+  AjamDropdown({@required this.selectedState, @required this.options});
 
   @override
   Widget build(BuildContext context, watch) {
     final selected = watch(selectedState).state;
-    final options = staticOptions ??
-        watch(optionsState).when(
-          data: (types) => types,
-          loading: () => null,
-          error: (e, stack) {
-            exceptionSnackbar(context, e);
-            return null;
-          },
-        );
 
     return Container(
       padding: EdgeInsets.all(24),
@@ -34,7 +22,7 @@ class AjamDropdown extends ConsumerWidget {
           ? CircularProgressIndicator()
           : DropdownButton<String>(
               isExpanded: true,
-              value: selected ?? options[0],
+              value: selected ?? options[0] ?? '',
               items: options
                   .map(
                     (String item) => DropdownMenuItem<String>(
