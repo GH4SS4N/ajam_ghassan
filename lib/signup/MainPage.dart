@@ -103,9 +103,7 @@ class AccountAlertDialog extends ConsumerWidget {
         children: [
           Icon(Icons.login, color: Theme.of(context).primaryColor, size: 50),
           Text(
-            accountType == AccountType.owner
-                ? "انشاء حساب صاحب المتجر"
-                : "انشاء حساب كابتن",
+            accountType == AccountType.owner ? "حساب صاحب متجر" : "حساب كابتن",
             style:
                 TextStyle(color: Theme.of(context).primaryColor, fontSize: 20),
           ),

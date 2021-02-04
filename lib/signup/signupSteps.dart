@@ -43,7 +43,7 @@ class SignupSteps extends ConsumerWidget {
                 height: signup_Step == SignupStep.profile ||
                         signup_Step == SignupStep.done
                     ? 130
-                    : 360,
+                    : 300,
                 width: double.infinity,
                 color: lightgrey,
                 child: Column(
@@ -86,7 +86,6 @@ class SignupSteps extends ConsumerWidget {
                           color: Colors.white,
                           border: Border(),
                           borderRadius: BorderRadius.all(Radius.circular(50))),
-                      //color: Colors.white,
                     ),
                   ],
                 ),
@@ -422,57 +421,66 @@ class AjamDone extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ScopedReader watch) {
     final accountType = watch(accountTypeProvider).state;
+
+    return OwnerDone();
+  }
+}
+
+class OwnerDone extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     return Expanded(
-        child: Container(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          SizedBox(
-            height: 275,
-            child: ListView(
-              padding: EdgeInsets.symmetric(horizontal: 6),
-              scrollDirection: Axis.horizontal,
-              children: [ImageCard(), ImageCard()],
+      child: Container(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            SizedBox(
+              height: 275,
+              child: ListView(
+                padding: EdgeInsets.symmetric(horizontal: 6),
+                scrollDirection: Axis.horizontal,
+                children: [ImageCard(), ImageCard()],
+              ),
             ),
-          ),
-          Container(
-            child: Row(
-              children: [
-                Icon(
-                  Icons.check_circle,
-                  color: Theme.of(context).primaryColor,
-                  size: 50,
-                ),
-                SizedBox(
-                  height: 30,
-                ),
-                Text(
-                  "تم حفظ بيانات متجرك بنجاح",
-                  style: TextStyle(fontSize: 20, color: darkblue),
-                )
-              ],
+            Container(
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.check_circle,
+                    color: Theme.of(context).primaryColor,
+                    size: 50,
+                  ),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  Text(
+                    "تم حفظ بيانات متجرك بنجاح",
+                    style: TextStyle(fontSize: 20, color: darkblue),
+                  )
+                ],
+              ),
             ),
-          ),
-          Container(
-            padding: EdgeInsets.fromLTRB(0, 0, 0, 13),
-            child: Column(
-              children: [
-                Text(
-                  "نقوم الان بتسجيل الشركاء وبناء قاعدة البايانات",
-                  style: TextStyle(color: darkgrey),
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                Text("ترقبو افتتاح المتاجر بتاريخ 15\2\2021",
-                    style: TextStyle(color: darkgrey))
-              ],
+            Container(
+              padding: EdgeInsets.fromLTRB(0, 0, 0, 13),
+              child: Column(
+                children: [
+                  Text(
+                    "نقوم الان بتسجيل الشركاء وبناء قاعدة البايانات",
+                    style: TextStyle(color: darkgrey),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Text("ترقبو افتتاح المتاجر بتاريخ 15\2\2021",
+                      style: TextStyle(color: darkgrey))
+                ],
+              ),
             ),
-          ),
-          Container()
-        ],
+            Container()
+          ],
+        ),
       ),
-    ));
+    );
   }
 }
 
