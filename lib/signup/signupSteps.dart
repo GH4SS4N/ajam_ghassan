@@ -64,7 +64,8 @@ class SignupSteps extends ConsumerWidget {
                         children: [
                           step == SignupStep.profile || step == SignupStep.done
                               ? Text(currentUser.get("name") ?? "")
-                              : [],
+                              // TODO REMOVE THIS
+                              : Icon(Icons.remove),
                           SizedBox(
                             width: 20,
                           ),
