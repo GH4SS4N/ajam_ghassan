@@ -1,9 +1,12 @@
 import 'package:ajam/EditableMenu.dart';
 import 'package:ajam/Infopage.dart';
+import 'package:ajam/data/Exceptions.dart';
+import 'package:ajam/data/requests.dart';
 import 'package:ajam/signup/MainPage.dart';
 import 'package:ajam/signup/signupSteps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/all.dart';
+import 'package:parse_server_sdk/parse_server_sdk.dart';
 
 import 'signup/MainPage.dart';
 //import 'package:time_range_picker/time_range_picker.dart';
@@ -41,21 +44,20 @@ class MyApp extends ConsumerWidget {
           alignment: MainAxisAlignment.center,
         ),
       ),
-      home: MainPage(), //MyHomePage(title: 'Flutter Demo Home Page'),
+      home: watch(connectionProvider).when(
+        data: (parse) => SignupSteps(),
+        loading: () =>
+            Container(child: Center(child: CircularProgressIndicator())),
+        error: (e, stack) {
+          exceptionSnackbar(context, e);
+          return Container(child: Center(child: Icon(Icons.error)));
+        },
+      ),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
+class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(

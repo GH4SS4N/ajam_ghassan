@@ -413,7 +413,7 @@ class _EditableMenu extends State<EditableMenu> {
                                               padding: EdgeInsets.fromLTRB(
                                                   13, 0, 13, 0),
                                               child: AjamDropdown(
-                                                options: [
+                                                staticOptions: [
                                                   "اي شي",
                                                   "مقبلات",
                                                   "موالح",

@@ -1,3 +1,5 @@
+import 'package:ajam/data/Exceptions.dart';
+import 'package:ajam/data/requests.dart';
 import 'package:ajam/signup/signupSteps.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -92,10 +94,13 @@ class AccountTypeList extends StatelessWidget {
   }
 }
 
+final loadingProvider = StateProvider<bool>((ref) => false);
+
 class AccountAlertDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ScopedReader watch) {
     final accountType = watch(accountTypeProvider).state;
+    final consumeLoading = watch(loadingProvider);
 
     return AlertDialog(
       contentPadding: EdgeInsets.only(right: 12, left: 12, top: 12),
@@ -104,9 +109,7 @@ class AccountAlertDialog extends ConsumerWidget {
         children: [
           Icon(Icons.login, color: Theme.of(context).primaryColor, size: 50),
           Text(
-            accountType == AccountType.owner
-                ? "انشاء حساب صاحب المتجر"
-                : "انشاء حساب كابتن",
+            accountType == AccountType.owner ? "حساب صاحب متجر" : "حساب كابتن",
             style:
                 TextStyle(color: Theme.of(context).primaryColor, fontSize: 20),
           ),
@@ -119,6 +122,10 @@ class AccountAlertDialog extends ConsumerWidget {
         ], // Only numbers can be entered
         maxLength: 10,
         maxLengthEnforced: true,
+        onChanged: (text) {
+          final readUser = context.read(currentUserProvider);
+          readUser.state = readUser.state..username = text;
+        },
         decoration: InputDecoration(
           prefixIcon: Icon(Icons.account_circle),
           //icon: Icon(Icons.phone),
@@ -136,21 +143,33 @@ class AccountAlertDialog extends ConsumerWidget {
       actions: [
         FlatButton(
           onPressed: () {
-            Navigator.pop(context);
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SignupSteps(),
-                ));
+            // set loading to true
+            consumeLoading.state = true;
+            // get phone number which is username
+            final username = context.read(currentUserProvider).state.username;
+            userByPhoneNumber(username).then(
+              (user) {
+                // set loading to false
+                consumeLoading.state = false;
+                context.read(signupStepProvider).state =
+                    user == null ? SignupStep.form : SignupStep.login;
+                Navigator.pop(context);
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SignupSteps(),
+                    ));
+              },
+            ).catchError((e) => exceptionSnackbar(context, e));
           },
           color: darkblue,
           shape: new RoundedRectangleBorder(
             borderRadius: new BorderRadius.circular(50.0),
           ),
-          child: Text(
-            "التالي",
-            style: TextStyle(color: Colors.white),
-          ),
+          child: !consumeLoading.state
+              ? Text("التالي", style: TextStyle(color: Colors.white))
+              : SizedBox(
+                  height: 20, width: 20, child: CircularProgressIndicator()),
         )
       ],
     );

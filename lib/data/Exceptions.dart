@@ -1,57 +1,21 @@
 import 'package:flutter/material.dart';
 
-class AjamException implements Exception {
-  final String header;
-  final String body;
+class HttpException implements Exception {
+  final String message;
 
-  AjamException(this.header, [this.body]);
+  HttpException(this.message); // Pass your message in constructor.
 
   @override
-  String toString() => this.header + ": " + this.body + ".";
+  String toString() {
+    return message;
+  }
 }
 
-class UnsupportedVersion extends AjamException {
-  UnsupportedVersion()
-      : super("الرجاء تحديث التطبيق",
-            "هذه النسخة من التطبيق غير مدعومة بعد الآن .");
-}
+final couldNotConnect = HttpException('تأكد من اتصال الانترنت');
+final wrongOTP = HttpException("الرمز خاطئ");
+final otpExpired = HttpException('انتهت مدة الرمز');
+final wrongPassword = HttpException('كلمة المرور خاطئة');
 
-class CouldNotConnect extends AjamException {
-  CouldNotConnect()
-      : super(
-          'خطأ في الاتصال',
-          'تأكد من اتصال الانترنت',
-        );
-}
-
-class WrongOTP extends AjamException {
-  WrongOTP()
-      : super(
-          'الرمز خاطئ'
-          'أعد إدخال الرمز الصحيح',
-        );
-}
-
-class OTPExpired extends AjamException {
-  OTPExpired()
-      : super(
-          'انتهت مدة الرمز'
-          'الرجاء طلب رمز تأكيد جديد',
-        );
-}
-
-void exceptionSnackbar(context, AjamException exception) {
-  Scaffold.of(context).showSnackBar(SnackBar(
-    content: exception.body == null
-        ? Text(exception.header)
-        : Column(
-            mainAxisSize: MainAxisSize.min,
-            //crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(exception.header,
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              Text(exception.body),
-            ],
-          ),
-  ));
+void exceptionSnackbar(context, HttpException e) {
+  Scaffold.of(context).showSnackBar(SnackBar(content: Text(e.message)));
 }
