@@ -573,29 +573,39 @@ class AjamAppBar extends ConsumerWidget {
 
 class AjamForm extends ConsumerWidget {
   final _formKey = GlobalKey<FormState>();
-  void validate() {
-    if (_formKey.currentState.validate()) {}
-  }
 
   @override
   Widget build(BuildContext context, ScopedReader watch) {
     final accountType = watch(accountTypeProvider).state;
+    final step = watch(signupStepProvider).state;
     String name;
     String password;
     String email;
+
+    void validate(BuildContext context) {
+      if (_formKey.currentState.validate()) {
+        context.read(signupStepProvider).state = SignupStep.verification;
+      }
+    }
 
     return Expanded(
       child: SingleChildScrollView(
         child: Container(
           padding: EdgeInsets.all(30),
           child: Form(
+            key: _formKey,
             child: Column(
               children: [
                 TextFormField(
                   // maxLength: 10,
                   // maxLengthEnforced: true,
                   // name
-                  validator: (value) {},
+                  validator: (value) {
+                    if (value.isNotEmpty)
+                      name = value;
+                    else
+                      return 'you have to have a name';
+                  },
                   decoration: InputDecoration(
                     prefixIcon: Icon(Icons.account_circle),
                     //icon: Icon(Icons.phone),
@@ -616,6 +626,12 @@ class AjamForm extends ConsumerWidget {
                 ),
                 //password\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
                 TextFormField(
+                  onChanged: (value) {
+                    password = value;
+                  },
+                  validator: (value) {
+                    if (value.isEmpty) return "you have to have a password";
+                  },
                   obscureText: true,
                   enableSuggestions: false,
                   autocorrect: false,
@@ -641,6 +657,15 @@ class AjamForm extends ConsumerWidget {
                 ),
                 // another password\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
                 TextFormField(
+                  validator: (value) {
+                    if (value == password) {
+                      return null;
+                    } else if (value.isEmpty) {
+                      return "you have to approve your paasword";
+                    } else {
+                      return "the password is defferent";
+                    }
+                  },
                   obscureText: true,
                   enableSuggestions: false,
                   autocorrect: false,
@@ -681,6 +706,9 @@ class AjamForm extends ConsumerWidget {
                 ),
                 //email
                 TextFormField(
+                  onChanged: (value) {
+                    email = value;
+                  },
                   // maxLength: 10,
                   // maxLengthEnforced: true,
                   decoration: InputDecoration(
@@ -703,8 +731,7 @@ class AjamForm extends ConsumerWidget {
                 ),
                 InkWell(
                   onTap: () {
-                    context.read(signupStepProvider).state =
-                        SignupStep.verification;
+                    validate(context);
                   },
                   child: Container(
                     //width: ,
