@@ -427,8 +427,16 @@ class AjamDone extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
+          SizedBox(
+            height: 275,
+            child: ListView(
+              padding: EdgeInsets.symmetric(horizontal: 6),
+              scrollDirection: Axis.horizontal,
+              children: [ImageCard(), ImageCard()],
+            ),
+          ),
           Container(
-            child: Column(
+            child: Row(
               children: [
                 Icon(
                   Icons.check_circle,
@@ -446,6 +454,7 @@ class AjamDone extends ConsumerWidget {
             ),
           ),
           Container(
+            padding: EdgeInsets.fromLTRB(0, 0, 0, 13),
             child: Column(
               children: [
                 Text(
@@ -650,7 +659,7 @@ class AjamForm extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        " التالي ",
+                        " تسجيل ",
                         style: TextStyle(color: Colors.white, fontSize: 20),
                       ),
                     ],
@@ -662,6 +671,104 @@ class AjamForm extends ConsumerWidget {
                   //color: Colors.white,
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ImageCard extends StatelessWidget {
+  File image;
+  bool approved;
+  String review;
+  ImageCard({this.approved, this.image, this.review});
+
+  Future<void> filePicker() async {
+    FilePickerResult result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg'],
+    );
+
+    if (result != null) {
+      image = File(result.files.single.path);
+      // state provider for the images
+      print(image.toString());
+    } else {
+      // User canceled the picker
+    }
+    //
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // constrain the width of the card
+    return InkWell(
+      onTap: () {
+        // context.read(accountTypeProvider).state = accountType;
+        filePicker();
+      },
+      child: SizedBox(
+        width: 300,
+        // cards are like container but with elevation maybe
+        child: Card(
+          margin: EdgeInsets.symmetric(horizontal: 6),
+          color: grey,
+          // this Column lays out the image and card body below
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // adds circular borders to the top of the image
+              ClipRRect(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(5),
+                  topRight: Radius.circular(5),
+                ),
+                child: image == null
+                    ? Center(
+                        child: Icon(Icons.image_not_supported),
+                      )
+                    : Image.file(
+                        image,
+                        fit: BoxFit.cover,
+                        width: 300,
+                        height: 150,
+                      ),
+              ),
+              // Padding(
+              //   padding: const EdgeInsets.all(12.0),
+              //   // lays out the text and then the icon to the left
+              //   child: Row(
+              //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //     crossAxisAlignment: CrossAxisAlignment.start,
+              //     children: [
+              //       // the text is expanded because we want it to take all the
+              //       // horizontal space it needs, pushing the icon to the end
+              //       Expanded(
+              //         // lays out the header and the body below it
+              //         child: Column(
+              //           crossAxisAlignment: CrossAxisAlignment.start,
+              //           children: [
+              //             Text(
+              //               header,
+              //               style: TextStyle(
+              //                 fontWeight: FontWeight.bold,
+              //                 color: Colors.white,
+              //                 fontSize: 24,
+              //               ),
+              //             ),
+              //             Text(body, style: TextStyle(color: Colors.white)),
+              //           ],
+              //         ),
+              //       ),
+              //       // this icon has a fixed size. While its sibling, the
+              //       // expanded widget, will fill the remaining space
+              //       Icon(this.iconData, size: 60, color: Colors.white),
+              //     ],
+              //   ),
+              // )
             ],
           ),
         ),
