@@ -3,6 +3,8 @@
 import 'dart:io';
 
 import 'package:ajam/Widgets/ajamDropdownMenu.dart';
+import 'package:ajam/data/Exceptions.dart';
+import 'package:ajam/data/requests.dart';
 import 'package:ajam/main.dart';
 import 'package:ajam/signup/MainPage.dart';
 import 'package:file_picker/file_picker.dart';
@@ -24,13 +26,13 @@ class SignupSteps extends ConsumerWidget {
   String phoneNumber = "0583082201";
   //bool info = false;
   File file;
-  var storeKind = ['مطعم', "بقاله"];
   String name = "غسان الغامدي";
 
   @override
   Widget build(context, watch) {
-    final accountType = watch(accountTypeProvider).state;
-    final signup_Step = watch(signupStepProvider).state;
+    final step = watch(signupStepProvider).state;
+    final phoneNumber = watch(currentUserProvider).state.username;
+
     return SafeArea(
       child: Scaffold(
         resizeToAvoidBottomInset: false,
@@ -40,8 +42,7 @@ class SignupSteps extends ConsumerWidget {
             Material(
               elevation: 5,
               child: Container(
-                height: signup_Step == SignupStep.profile ||
-                        signup_Step == SignupStep.done
+                height: step == SignupStep.profile || step == SignupStep.done
                     ? 130
                     : 300,
                 width: double.infinity,
@@ -50,8 +51,7 @@ class SignupSteps extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     AjamAppBar(),
-                    signup_Step == SignupStep.profile ||
-                            signup_Step == SignupStep.done
+                    step == SignupStep.profile || step == SignupStep.done
                         ? Container()
                         : SizedBox(
                             height: 120,
@@ -73,8 +73,7 @@ class SignupSteps extends ConsumerWidget {
                           SizedBox(
                             width: 20,
                           ),
-                          signup_Step == SignupStep.profile ||
-                                  signup_Step == SignupStep.done
+                          step == SignupStep.profile || step == SignupStep.done
                               ? Text(name)
                               : Icon(
                                   Icons.create_rounded,
@@ -91,17 +90,15 @@ class SignupSteps extends ConsumerWidget {
                 ),
               ),
             ),
-            signup_Step == SignupStep.login ||
-                    signup_Step == SignupStep.verification
-                ? signup_Step == SignupStep.login
+            step == SignupStep.login || step == SignupStep.verification
+                ? step == SignupStep.login
                     ? Ajamlogin()
                     : AjamVerification()
-                : signup_Step == SignupStep.profile ||
-                        signup_Step == SignupStep.done
-                    ? signup_Step == SignupStep.done
+                : step == SignupStep.profile || step == SignupStep.done
+                    ? step == SignupStep.done
                         ? AjamDone()
                         : AjamProfile()
-                    : signup_Step == SignupStep.verification
+                    : step == SignupStep.verification
                         ? AjamVerification()
                         : AjamForm()
           ],
@@ -285,6 +282,7 @@ class AjamProfile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ScopedReader watch) {
     final accountType = watch(accountTypeProvider).state;
+
     return Expanded(
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 30),
@@ -380,7 +378,10 @@ class AjamProfile extends ConsumerWidget {
                   ),
 
                   //dropdown (countries)
-                  AjamDropdown(options: ['fghf', "dfgdfg"]),
+                  AjamDropdown(
+                    optionsState: storeTypesProvider,
+                    selectedState: storeTypeSelectedProvider,
+                  ),
                   // Expanded(child: null),
                 ],
               ),
@@ -622,12 +623,18 @@ class AjamForm extends ConsumerWidget {
               ),
 
               //dropdown (countries)
-              AjamDropdown(options: countries),
+              AjamDropdown(
+                staticOptions: countries,
+                selectedState: countrySelectedProvider,
+              ),
               SizedBox(
                 height: 30,
               ),
               //contries dropDown
-              AjamDropdown(options: cities),
+              AjamDropdown(
+                staticOptions: cities,
+                selectedState: citySelectedProvider,
+              ),
               SizedBox(
                 height: 30,
               ),

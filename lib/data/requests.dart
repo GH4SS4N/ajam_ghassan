@@ -1,21 +1,10 @@
+import 'package:ajam/data/StoreType.dart';
+
 import 'Exceptions.dart';
 import 'Store.dart';
 import 'config.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
-
-/*
- * take these providers away from here and stick them anywhere you want.
- */
-
-enum AccountType { captain, owner, none }
-
-/*
- * State Providers
- */
-
-final accountTypeProvider =
-    StateProvider<AccountType>((ref) => AccountType.none);
 
 final currentUserProvider =
     StateProvider<ParseUser>((ref) => ParseUser("", "", ""));
@@ -47,6 +36,18 @@ final connectionProvider = FutureProvider<Parse>(
       clientKey: clientKey,
       debug: true,
     );
+  },
+);
+
+final storeTypesProvider = FutureProvider<List<String>>(
+  (ref) async {
+    final response = await _parseRequest(StoreType().getAll);
+
+    final results = response.results
+        .map<String>((storeType) => (storeType as StoreType).name)
+        .toList();
+
+    return results;
   },
 );
 
@@ -127,7 +128,13 @@ Future<ParseObject> saveParseObject(ParseObject object) async {
  */
 Future<ParseResponse> _parseRequest(Function request) async {
   try {
-    return await request();
+    final ParseResponse response = await request();
+
+    if (response.error != null && (response.error.code ~/ 100) % 10 == 5) {
+      throw Exception();
+    }
+
+    return response;
   } catch (e) {
     throw couldNotConnect;
   }
