@@ -24,7 +24,8 @@ final storeProvider = FutureProvider<Store>(
 
     final response = await _parseRequest(queryBuilder.query);
 
-    return response.results?.elementAt(0);
+    return response.results?.elementAt(0) ?? Store()
+      ..user = ref.read(currentUserProvider);
   },
 );
 
@@ -117,6 +118,7 @@ Future otpVerify(String username, String password) async {
   }
 }
 
+// returns the saved parse object
 Future<ParseObject> saveParseObject(ParseObject object) async {
   final response = await _parseRequest(object.save);
 
