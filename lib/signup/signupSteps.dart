@@ -65,9 +65,12 @@ class SignupSteps extends ConsumerWidget {
                           step == SignupStep.profile || step == SignupStep.done
                               ? Text(currentUser.get("name") ?? "")
                               // TODO REMOVE THIS
-                              : Icon(Icons.remove),
+                              : Container(),
                           SizedBox(
-                            width: 20,
+                            width: step == SignupStep.profile ||
+                                    step == SignupStep.done
+                                ? 20
+                                : 0,
                           ),
                           Text(currentUser.username),
                         ],
@@ -278,7 +281,7 @@ class Ajamlogin extends ConsumerWidget {
 
 class AjamProfile extends ConsumerWidget {
   File file;
-
+  final _formKey = GlobalKey<FormState>();
   Future<void> filePicker() async {
     FilePickerResult result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -293,6 +296,12 @@ class AjamProfile extends ConsumerWidget {
       // User canceled the picker
     }
     //
+  }
+
+  void validate(BuildContext context) {
+    if (_formKey.currentState.validate()) {
+      context.read(signupStepProvider).state = SignupStep.done;
+    }
   }
 
   @override
@@ -369,24 +378,38 @@ class AjamProfile extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    Text("الشعار (اختياري)"),
+                    Text(accountType == AccountType.captain
+                        ? "الصوره الشخصيه"
+                        : "الشعار (اختياري)"),
                     SizedBox(
                       height: 30,
                     ),
-                    TextFormField(
-                      // maxLength: 10,
-                      // maxLengthEnforced: true,
-                      decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.store),
-                        hintText: "اسم المتجر",
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(50),
-                          borderSide:
-                              BorderSide(color: Theme.of(context).primaryColor),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(50),
-                          borderSide: BorderSide(color: lightgrey),
+                    Form(
+                      key: _formKey,
+                      child: TextFormField(
+                        validator: (value) {
+                          if (value.isEmpty)
+                            return "there have to be a name to the shope";
+                        },
+                        // maxLength: 10,
+                        // maxLengthEnforced: true,
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(Icons.store),
+                          hintText: "اسم المتجر",
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(50),
+                            borderSide: BorderSide(
+                                color: Theme.of(context).primaryColor),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(50),
+                            borderSide: BorderSide(
+                                color: Theme.of(context).primaryColor),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(50),
+                            borderSide: BorderSide(color: lightgrey),
+                          ),
                         ),
                       ),
                     ),
@@ -400,12 +423,222 @@ class AjamProfile extends ConsumerWidget {
                       selectedState: storeTypeSelectedProvider,
                     ),
                     // Expanded(child: null),
+                    accountType == AccountType.captain
+                        ? Container(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 13, vertical: 13),
+                                  child: Text("صور السياره"),
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Column(
+                                      children: [
+                                        Container(
+                                          width: 80,
+                                          // color: Colors.red,
+                                          child: Stack(
+                                            children: [
+                                              Container(
+                                                  width: 80,
+                                                  height: 80,
+                                                  color: orange,
+                                                  child: file == null
+                                                      ? Container()
+                                                      : SizedBox(
+                                                          child: Image.file(
+                                                            file,
+                                                            fit: BoxFit.fill,
+                                                          ),
+                                                          height: 80,
+                                                          width: 80,
+                                                        )),
+                                              Positioned(
+                                                bottom: 0,
+                                                left: 0,
+                                                child: Container(
+                                                  height: 20,
+                                                  width: 20,
+                                                  padding: EdgeInsets.fromLTRB(
+                                                      2, 0, 0, 2),
+                                                  child: IconButton(
+                                                      //iconSize: 15,
+                                                      color: orange,
+                                                      icon: Icon(
+                                                        Icons.create_sharp,
+                                                        size: 10,
+                                                      ),
+                                                      onPressed: () {
+                                                        filePicker();
+                                                      }),
+                                                  decoration: BoxDecoration(
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.grey
+                                                              .withOpacity(0.5),
+                                                          spreadRadius: 2,
+                                                          blurRadius: 7,
+                                                          offset: Offset(0,
+                                                              3), // changes position of shadow
+                                                        ),
+                                                      ],
+                                                      color: Colors.white,
+                                                      borderRadius:
+                                                          BorderRadius.all(
+                                                              Radius.circular(
+                                                                  50))),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Text("الامام"),
+                                      ],
+                                    ),
+                                    Column(
+                                      children: [
+                                        Container(
+                                          width: 80,
+                                          // color: Colors.red,
+                                          child: Stack(
+                                            children: [
+                                              Container(
+                                                  width: 80,
+                                                  height: 80,
+                                                  color: orange,
+                                                  child: file == null
+                                                      ? Container()
+                                                      : SizedBox(
+                                                          child: Image.file(
+                                                            file,
+                                                            fit: BoxFit.fill,
+                                                          ),
+                                                          height: 80,
+                                                          width: 80,
+                                                        )),
+                                              Positioned(
+                                                bottom: 0,
+                                                left: 0,
+                                                child: Container(
+                                                  height: 20,
+                                                  width: 20,
+                                                  padding: EdgeInsets.fromLTRB(
+                                                      2, 0, 0, 2),
+                                                  child: IconButton(
+                                                      //iconSize: 15,
+                                                      color: orange,
+                                                      icon: Icon(
+                                                        Icons.create_sharp,
+                                                        size: 10,
+                                                      ),
+                                                      onPressed: () {
+                                                        filePicker();
+                                                      }),
+                                                  decoration: BoxDecoration(
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.grey
+                                                              .withOpacity(0.5),
+                                                          spreadRadius: 2,
+                                                          blurRadius: 7,
+                                                          offset: Offset(0,
+                                                              3), // changes position of shadow
+                                                        ),
+                                                      ],
+                                                      color: Colors.white,
+                                                      borderRadius:
+                                                          BorderRadius.all(
+                                                              Radius.circular(
+                                                                  50))),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Text("الخلف"),
+                                      ],
+                                    ),
+                                    Column(
+                                      children: [
+                                        Container(
+                                          width: 80,
+                                          // color: Colors.red,
+                                          child: Stack(
+                                            children: [
+                                              Container(
+                                                  width: 80,
+                                                  height: 80,
+                                                  color: orange,
+                                                  child: file == null
+                                                      ? Container()
+                                                      : SizedBox(
+                                                          child: Image.file(
+                                                            file,
+                                                            fit: BoxFit.fill,
+                                                          ),
+                                                          height: 80,
+                                                          width: 80,
+                                                        )),
+                                              Positioned(
+                                                bottom: 0,
+                                                left: 0,
+                                                child: Container(
+                                                  height: 20,
+                                                  width: 20,
+                                                  padding: EdgeInsets.fromLTRB(
+                                                      2, 0, 0, 2),
+                                                  child: IconButton(
+                                                      //iconSize: 15,
+                                                      color: orange,
+                                                      icon: Icon(
+                                                        Icons.create_sharp,
+                                                        size: 10,
+                                                      ),
+                                                      onPressed: () {
+                                                        filePicker();
+                                                      }),
+                                                  decoration: BoxDecoration(
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.grey
+                                                              .withOpacity(0.5),
+                                                          spreadRadius: 2,
+                                                          blurRadius: 7,
+                                                          offset: Offset(0,
+                                                              3), // changes position of shadow
+                                                        ),
+                                                      ],
+                                                      color: Colors.white,
+                                                      borderRadius:
+                                                          BorderRadius.all(
+                                                              Radius.circular(
+                                                                  50))),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Text("الداخل"),
+                                      ],
+                                    ),
+                                    //iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
+                                  ],
+                                )
+                              ],
+                            ),
+                          )
+                        : Container()
                   ],
                 ),
               ),
               InkWell(
                 onTap: () {
-                  context.read(signupStepProvider).state = SignupStep.done;
+                  validate(context);
                 },
                 child: Container(
                   //width: ,
@@ -506,29 +739,35 @@ class AjamAppBar extends ConsumerWidget {
     final signup_Step = watch(signupStepProvider).state;
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 15),
+      padding: EdgeInsets.fromLTRB(13, 0, 0, 0),
       height: 60,
       child: Row(
         children: [
           signup_Step == SignupStep.form ||
                   signup_Step == SignupStep.verification
-              ? IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: Icon(
-                    Icons.arrow_back_ios,
-                    color: Theme.of(context).primaryColor,
-                    size: 40,
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 13, 0),
+                  child: IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(
+                      Icons.arrow_back_ios,
+                      color: Theme.of(context).primaryColor,
+                      size: 40,
+                    ),
                   ),
                 )
-              : IconButton(
-                  onPressed: () {
-                    context.read(signupStepProvider).state = SignupStep.form;
-                    Navigator.pop(context);
-                  },
-                  icon: Icon(
-                    Icons.logout,
-                    color: Theme.of(context).primaryColor,
-                    size: 40,
+              : Padding(
+                  padding: const EdgeInsets.fromLTRB(13, 0, 5, 0),
+                  child: IconButton(
+                    onPressed: () {
+                      context.read(signupStepProvider).state = SignupStep.form;
+                      Navigator.pop(context);
+                    },
+                    icon: Icon(
+                      Icons.logout,
+                      color: Theme.of(context).primaryColor,
+                      size: 40,
+                    ),
                   ),
                 ),
           Expanded(
@@ -595,7 +834,13 @@ class AjamForm extends ConsumerWidget {
                     else
                       return 'you have to have a name';
                   },
+
                   decoration: InputDecoration(
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(50),
+                      borderSide:
+                          BorderSide(color: Theme.of(context).primaryColor),
+                    ),
                     prefixIcon: Icon(Icons.account_circle),
                     //icon: Icon(Icons.phone),
                     hintText: "الاسم الكامل ",
@@ -627,6 +872,11 @@ class AjamForm extends ConsumerWidget {
                   // maxLength: 10,
                   // maxLengthEnforced: true,
                   decoration: InputDecoration(
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(50),
+                      borderSide:
+                          BorderSide(color: Theme.of(context).primaryColor),
+                    ),
                     prefixIcon: Icon(Icons.lock),
                     //icon: Icon(Icons.phone),
                     hintText: "كلمه المرور ",
@@ -661,6 +911,11 @@ class AjamForm extends ConsumerWidget {
                   // maxLength: 10,
                   // maxLengthEnforced: true,
                   decoration: InputDecoration(
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(50),
+                      borderSide:
+                          BorderSide(color: Theme.of(context).primaryColor),
+                    ),
                     prefixIcon: Icon(Icons.lock_outline),
                     hintText: "تاكيد كلمه المرور",
                     focusedBorder: OutlineInputBorder(
@@ -803,11 +1058,17 @@ class ImageCard extends StatelessWidget {
                     ? Center(
                         child: Icon(Icons.image_not_supported),
                       )
-                    : Image.file(
-                        image,
-                        fit: BoxFit.cover,
-                        width: 300,
-                        height: 150,
+                    : Stack(
+                        children: [
+                          Image.file(
+                            image,
+                            fit: BoxFit.cover,
+                            width: 300,
+                            height: 150,
+                          ),
+                          Text("review"),
+                          Text("review content"),
+                        ],
                       ),
               ),
               // Padding(
