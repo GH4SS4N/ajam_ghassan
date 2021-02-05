@@ -220,31 +220,20 @@ class Ajamlogin extends ConsumerWidget {
                 // set loading to true
                 context.read(loadingProvider).state = true;
 
-                // login current user
-                login(context.read(currentUserProvider).state)
-                    // then update the user and request OTP
+                loginAndRequestOTP(context.read(currentUserProvider).state)
                     .then(
-                      (loggedUser) {
-                        context.read(currentUserProvider).state = loggedUser;
-
-                        return otpRequest(loggedUser.username);
+                      (newUser) {
+                        context.read(currentUserProvider).state = newUser;
+                        context.read(signupStepProvider).state =
+                            SignupStep.verification;
                       },
                     )
-                    // then to the verification step
-                    .then((nothing) => context.read(signupStepProvider).state =
-                        SignupStep.verification)
                     // if there was an error loging-in or requesting an OTP
-                    .catchError((e) async {
-                      // check if the user was logged in
-                      if (await ParseUser.currentUser() != null)
-                        // log them out
-                        logout(context.read(currentUserProvider).state);
-                      // then throw the error
-                      exceptionSnackbar(context, e);
-                    })
+                    .catchError((e) => exceptionSnackbar(context, e))
                     // when everything is done, set loading to false
                     .whenComplete(
-                        () => context.read(loadingProvider).state = false);
+                      () => context.read(loadingProvider).state = false,
+                    );
               },
               child: Container(
                 height: 60,
@@ -560,6 +549,8 @@ class AjamAppBar extends ConsumerWidget {
   }
 }
 
+final _passwordMatchProvider = StateProvider<String>((ref) => "");
+
 class AjamForm extends ConsumerWidget {
   final _formKey = GlobalKey<FormState>();
 
@@ -571,9 +562,14 @@ class AjamForm extends ConsumerWidget {
     String password;
     String email;
 
-    void validate(BuildContext context) {
+    void submit(BuildContext context) {
       if (_formKey.currentState.validate()) {
-        context.read(signupStepProvider).state = SignupStep.verification;
+        signupAndRequestOTP(context.read(currentUserProvider).state)
+            .then((user) {
+          context.read(currentUserProvider).state = user;
+          context.read(_passwordMatchProvider).state;
+          context.read(signupStepProvider).state = SignupStep.verification;
+        }).catchError((e) => exceptionSnackbar(context, e));
       }
     }
 
@@ -586,15 +582,19 @@ class AjamForm extends ConsumerWidget {
             child: Column(
               children: [
                 TextFormField(
-                  // maxLength: 10,
-                  // maxLengthEnforced: true,
-                  // name
                   validator: (value) {
-                    if (value.isNotEmpty)
-                      name = value;
-                    else
-                      return 'you have to have a name';
+                    if (value.isNotEmpty) {
+                      context
+                          .read(currentUserProvider)
+                          .state
+                          .set("name", value);
+                      return null;
+                    }
+
+                    return 'يجب إدخال الاسم الكامل';
                   },
+                  initialValue:
+                      context.read(currentUserProvider).state.get("name"),
                   decoration: InputDecoration(
                     prefixIcon: Icon(Icons.account_circle),
                     //icon: Icon(Icons.phone),
@@ -615,12 +615,9 @@ class AjamForm extends ConsumerWidget {
                 ),
                 //password\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
                 TextFormField(
-                  onChanged: (value) {
-                    password = value;
-                  },
-                  validator: (value) {
-                    if (value.isEmpty) return "you have to have a password";
-                  },
+                  validator: (value) => value.isEmpty || value.length < 8
+                      ? "يجب إدخال كلمة مرور من 8 حروف على الأقل"
+                      : null,
                   obscureText: true,
                   enableSuggestions: false,
                   autocorrect: false,
@@ -647,6 +644,9 @@ class AjamForm extends ConsumerWidget {
                 // another password\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
                 TextFormField(
                   validator: (value) {
+                    final user = context.read(currentUserProvider).state;
+
+                    user.password.length > 0 ? 
                     if (value == password) {
                       return null;
                     } else if (value.isEmpty) {
@@ -719,9 +719,7 @@ class AjamForm extends ConsumerWidget {
                   height: 30,
                 ),
                 InkWell(
-                  onTap: () {
-                    validate(context);
-                  },
+                  onTap: () => submit(context),
                   child: Container(
                     //width: ,
                     height: 60,

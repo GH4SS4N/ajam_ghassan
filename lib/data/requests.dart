@@ -67,8 +67,34 @@ Future<ParseUser> userByPhoneNumber(String username) async {
   return response.results?.elementAt(0);
 }
 
+Future<ParseUser> signupAndRequestOTP(ParseUser user) async {
+  ParseUser newUser = await _signup(user);
+
+  try {
+    await _otpRequest(newUser.username);
+  } catch (e) {
+    await logout();
+    throw e;
+  }
+
+  return newUser;
+}
+
+Future<ParseUser> loginAndRequestOTP(ParseUser user) async {
+  ParseUser newUser = await _login(user);
+
+  try {
+    await _otpRequest(newUser.username);
+  } catch (e) {
+    await logout();
+    throw e;
+  }
+
+  return newUser;
+}
+
 // resturns ParseUser
-Future<ParseUser> signup(ParseUser user) async {
+Future<ParseUser> _signup(ParseUser user) async {
   final response = await _parseRequest(
     () async => await user.signUp(allowWithoutEmail: true),
   );
@@ -77,7 +103,7 @@ Future<ParseUser> signup(ParseUser user) async {
 }
 
 // resturns ParseUser
-Future<ParseUser> login(ParseUser user) async {
+Future<ParseUser> _login(ParseUser user) async {
   final response = await _parseRequest(user.login);
 
   if (response.error?.code == 101) throw wrongPassword;
@@ -85,14 +111,14 @@ Future<ParseUser> login(ParseUser user) async {
   return response.results?.elementAt(0);
 }
 
-Future logout(ParseUser user) async {
+Future logout() async {
   try {
-    user.logout();
+    (await ParseUser.currentUser()).logout();
   } catch (e) {}
 }
 
 // returns true if request sent
-Future otpRequest(String username) async {
+Future _otpRequest(String username) async {
   await _parseRequest(() async => await ParseCloudFunction('otp')
       .execute(parameters: {"phone_number": username}));
 }
