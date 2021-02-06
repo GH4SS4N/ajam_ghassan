@@ -12,9 +12,9 @@ class Captain extends ParseObject implements ParseCloneable {
   ParseFile get photo => get(photoKey);
   set photo(ParseFile photo) => set(photoKey, photo);
 
-  static const String idKey = "id";
-  String get id => get(idKey);
-  set id(String id) => set(idKey, id);
+  static const String idNumberKey = "idNumber";
+  String get idNumber => get(idNumberKey);
+  set idNumber(String id) => set(idNumberKey, id);
 
   static const String ibanKey = "iban";
   String get iban => get(ibanKey);
@@ -31,4 +31,8 @@ class Captain extends ParseObject implements ParseCloneable {
   static const String carInsideKey = "carInside";
   ParseFile get carInside => get(carInsideKey);
   set carInside(ParseFile carInside) => set(carInsideKey, carInside);
+
+  static const String userKey = "user";
+  ParseUser get user => get(userKey);
+  set user(ParseUser user) => set(userKey, user);
 }

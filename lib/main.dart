@@ -46,7 +46,7 @@ class MyApp extends ConsumerWidget {
         ),
       ),
       home: watch(connectionProvider).when(
-        data: (parse) => SignupSteps(),
+        data: (parse) => MainPage(),
         loading: () =>
             Container(child: Center(child: CircularProgressIndicator())),
         error: (e, stack) {

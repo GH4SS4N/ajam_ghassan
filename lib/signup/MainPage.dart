@@ -5,13 +5,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../main.dart';
 
 enum AccountType { captain, owner, none }
 
 final accountTypeProvider =
-    StateProvider<AccountType>((ref) => AccountType.owner);
+    StateProvider<AccountType>((ref) => AccountType.captain);
 
 class MainPage extends StatelessWidget {
   @override
@@ -28,19 +29,19 @@ class MainPage extends StatelessWidget {
               ConstrainedBox(constraints: BoxConstraints(maxHeight: 24)),
               Header(),
               Text(
-                "نقوم الآن بتسجيل الشركاء و بناء قاعدة البيانات\nترقبوا افتتاح المتاجر بتاريخ 15/2/2021",
+                "نقوم الآن بتسجيل الشركاء و بناء قاعدة البيانات\nترقبونا قريبا",
                 style: TextStyle(color: darkgrey),
                 textAlign: TextAlign.center,
               ),
               AccountTypeList(),
               FlatButton(
-                onPressed: () {},
+                onPressed: () => launch("https://twitter.com/ajam_sa"),
                 color: darkblue,
                 shape: new RoundedRectangleBorder(
                   borderRadius: new BorderRadius.circular(50.0),
                 ),
                 child: Text(
-                  "اتصل بنا",
+                  "اتصل بنا على تويتر",
                   style: TextStyle(color: Colors.white),
                 ),
               )
@@ -120,7 +121,7 @@ class AccountAlertDialog extends ConsumerWidget {
         inputFormatters: <TextInputFormatter>[
           FilteringTextInputFormatter.digitsOnly
         ], // Only numbers can be entered
-        maxLength: 10,
+        maxLength: 9,
         maxLengthEnforced: true,
         onChanged: (text) {
           final readUser = context.read(currentUserProvider);
@@ -129,7 +130,7 @@ class AccountAlertDialog extends ConsumerWidget {
         decoration: InputDecoration(
           prefixIcon: Icon(Icons.account_circle),
           //icon: Icon(Icons.phone),
-          hintText: "رقم الجوال ",
+          hintText: "501231234",
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(50),
             borderSide: BorderSide(color: Theme.of(context).primaryColor),

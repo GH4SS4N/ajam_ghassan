@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:ajam/Widgets/ajamDropdownMenu.dart';
+import 'package:ajam/data/Captain.dart';
 import 'package:ajam/data/Exceptions.dart';
+import 'package:ajam/data/Store.dart';
 import 'package:ajam/data/requests.dart';
 import 'package:ajam/main.dart';
 import 'package:ajam/signup/MainPage.dart';
@@ -16,9 +18,8 @@ import '../staticData.dart';
 
 enum SignupStep { login, form, verification, profile, done }
 
-final signupStepProvider = StateProvider<SignupStep>((ref) => SignupStep.form);
-
-//context.read(signupStepProvider).state = SignupStep.verification;
+final signupStepProvider =
+    StateProvider<SignupStep>((ref) => SignupStep.profile);
 
 class SignupSteps extends ConsumerWidget {
   @override
@@ -27,80 +28,86 @@ class SignupSteps extends ConsumerWidget {
     final currentUser = watch(currentUserProvider).state;
 
     return SafeArea(
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        resizeToAvoidBottomPadding: false,
-        body: Column(
-          children: [
-            Material(
-              elevation: 5,
-              child: Container(
-                height: step == SignupStep.profile || step == SignupStep.done
-                    ? 130
-                    : 300,
-                width: double.infinity,
-                color: lightgrey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    AjamAppBar(),
-                    step == SignupStep.profile || step == SignupStep.done
-                        ? Container()
-                        : SizedBox(
-                            height: 120,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Image.asset("assets/img/arabic.png"),
-                                Image.asset("assets/img/shape.png"),
-                              ],
+      child: WillPopScope(
+        onWillPop: () async => false,
+        child: Scaffold(
+          resizeToAvoidBottomInset: false,
+          resizeToAvoidBottomPadding: false,
+          body: Column(
+            children: [
+              Material(
+                elevation: 5,
+                child: Container(
+                  height: step == SignupStep.profile || step == SignupStep.done
+                      ? 130
+                      : 300,
+                  width: double.infinity,
+                  color: lightgrey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      AjamAppBar(),
+                      step == SignupStep.profile || step == SignupStep.done
+                          ? Container()
+                          : SizedBox(
+                              height: 120,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset("assets/img/arabic.png"),
+                                  Image.asset("assets/img/shape.png"),
+                                ],
+                              ),
                             ),
-                          ),
-                    Container(
-                      margin: EdgeInsets.all(20),
-                      padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          step == SignupStep.profile || step == SignupStep.done
-                              ? Text(currentUser.get("name") ?? "")
-                              // TODO REMOVE THIS
-                              : Container(),
-                          SizedBox(
-                            width: step == SignupStep.profile ||
+                      Container(
+                        margin: EdgeInsets.all(20),
+                        padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            step == SignupStep.profile ||
                                     step == SignupStep.done
-                                ? 20
-                                : 0,
-                          ),
-                          Text(currentUser.username),
-                        ],
+                                ? Text(currentUser.get("name") ?? "")
+                                : Container(),
+                            SizedBox(
+                              width: step == SignupStep.profile ||
+                                      step == SignupStep.done
+                                  ? 20
+                                  : 0,
+                            ),
+                            Text(currentUser.username),
+                          ],
+                        ),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border(),
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(50))),
                       ),
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border(),
-                          borderRadius: BorderRadius.all(Radius.circular(50))),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            step == SignupStep.login || step == SignupStep.verification
-                ? step == SignupStep.login
-                    ? Ajamlogin()
-                    : AjamVerification()
-                : step == SignupStep.profile || step == SignupStep.done
-                    ? step == SignupStep.done
-                        ? AjamDone()
-                        : AjamProfile()
-                    : step == SignupStep.verification
-                        ? AjamVerification()
-                        : AjamForm()
-          ],
+              step == SignupStep.login || step == SignupStep.verification
+                  ? step == SignupStep.login
+                      ? Ajamlogin()
+                      : AjamVerification()
+                  : step == SignupStep.profile || step == SignupStep.done
+                      ? step == SignupStep.done
+                          ? AjamDone()
+                          : AjamProfile()
+                      : step == SignupStep.verification
+                          ? AjamVerification()
+                          : AjamForm()
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
+final _otp = StateProvider<String>((ref) => "");
 
 class AjamVerification extends ConsumerWidget {
   @override
@@ -118,6 +125,9 @@ class AjamVerification extends ConsumerWidget {
               child: Column(
                 children: [
                   TextField(
+                    onChanged: (text) => context.read(_otp).state = text,
+                    maxLength: 4,
+                    maxLengthEnforced: true,
                     keyboardType: TextInputType.number,
                     inputFormatters: <TextInputFormatter>[
                       FilteringTextInputFormatter.digitsOnly
@@ -136,18 +146,17 @@ class AjamVerification extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  TextButton(
-                      onPressed: () {
-                        context.read(signupStepProvider).state =
-                            SignupStep.form;
-                      },
-                      child: Text('اعاده ارسال '))
                 ],
               ),
             ),
             InkWell(
               onTap: () {
-                context.read(signupStepProvider).state = SignupStep.profile;
+                var username = context.read(currentUserProvider).state.username;
+                var password = context.read(_otp).state;
+                otpVerify(username, password)
+                    .then((value) => context.read(signupStepProvider).state =
+                        SignupStep.profile)
+                    .catchError((e) => exceptionSnackbar(context, e));
               },
               child: Container(
                 //width: ,
@@ -223,12 +232,12 @@ class Ajamlogin extends ConsumerWidget {
                 // set loading to true
                 context.read(loadingProvider).state = true;
 
-                loginAndRequestOTP(context.read(currentUserProvider).state)
+                login(context.read(currentUserProvider).state)
                     .then(
                       (newUser) {
                         context.read(currentUserProvider).state = newUser;
                         context.read(signupStepProvider).state =
-                            SignupStep.verification;
+                            SignupStep.profile;
                       },
                     )
                     // if there was an error loging-in or requesting an OTP
@@ -269,390 +278,645 @@ class Ajamlogin extends ConsumerWidget {
 }
 
 class AjamProfile extends ConsumerWidget {
-  File file;
-  final _formKey = GlobalKey<FormState>();
-  Future<void> filePicker() async {
-    FilePickerResult result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['jpg'],
-    );
-
-    if (result != null) {
-      file = File(result.files.single.path);
-      // state provider for the images
-      print(file.toString());
-    } else {
-      // User canceled the picker
-    }
-    //
-  }
-
-  void validate(BuildContext context) {
-    if (_formKey.currentState.validate()) {
-      context.read(signupStepProvider).state = SignupStep.done;
-    }
-  }
-
   @override
   Widget build(BuildContext context, ScopedReader watch) {
     final accountType = watch(accountTypeProvider).state;
 
     return Expanded(
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 30),
-        child: watch(storeTypesProvider).when(
-          data: (storeTypes) => Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                margin: EdgeInsets.fromLTRB(0, 30, 0, 0),
-                child: Column(
-                  children: [
-                    Text("لنقم باضافة بعض معلومات المتجر"),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    Container(
-                      width: 80,
-                      // color: Colors.red,
-                      child: Stack(
-                        children: [
-                          ClipOval(
-                            child: CircleAvatar(
+      child: accountType == AccountType.captain
+          ? CaptainProfile()
+          : StoreProfile(),
+    );
+  }
+}
+
+final StateProvider<Store> storeProvider = StateProvider<Store>((ref) {
+  getStoreTypes().then((types) {
+    ref.read(storeTypesProvider).state = types;
+
+    getStoredStore(ref.watch(currentUserProvider).state).then((store) {
+      ref.read(storeProvider).state = store;
+    });
+  });
+
+  return null;
+});
+
+class StoreProfile extends ConsumerWidget {
+  final _formKey = GlobalKey<FormState>();
+  Future<File> filePicker() async {
+    FilePickerResult result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg'],
+    );
+
+    if (result.files != null) {
+      return File(result.files.single.path);
+    } else
+      return null;
+  }
+
+  Future validate(BuildContext context) async {
+    if (_formKey.currentState.validate()) {
+      final store = context.read(storeProvider).state;
+      if (store.logo == null) {
+        exceptionSnackbar(context, provideImages);
+        return;
+      }
+
+      final storeTypes = context.read(storeTypesProvider).state;
+      final selectedType = context.read(storeTypeSelectedProvider).state;
+      store.storeType =
+          storeTypes.firstWhere((type) => type.name == selectedType);
+
+      try {
+        final newStore = await saveParseObject(store);
+        context.read(storeProvider).state = newStore;
+        context.read(signupStepProvider).state = SignupStep.done;
+      } catch (e) {
+        print(e);
+        exceptionSnackbar(context, e);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, ScopedReader watch) {
+    final store = watch(storeProvider).state;
+
+    print("building");
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 30),
+      child: store == null
+          ? Center(child: CircularProgressIndicator())
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  margin: EdgeInsets.fromLTRB(0, 30, 0, 0),
+                  child: Column(
+                    children: [
+                      Text("لنقم باضافة بعض معلومات المتجر"),
+                      SizedBox(
+                        height: 30,
+                      ),
+                      Container(
+                        width: 80,
+                        // color: Colors.red,
+                        child: Stack(
+                          children: [
+                            ClipOval(
+                              child: CircleAvatar(
                                 minRadius: 35,
                                 backgroundColor: darkblue,
-                                child: file == null
-                                    ? Container()
-                                    : SizedBox(
-                                        child: Image.file(
-                                          file,
-                                          fit: BoxFit.fill,
-                                        ),
-                                        height: 80,
-                                        width: 80,
-                                      )),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            child: Container(
-                              height: 20,
-                              width: 20,
-                              padding: EdgeInsets.fromLTRB(2, 0, 0, 2),
-                              child: IconButton(
-                                  //iconSize: 15,
-                                  color: orange,
-                                  icon: Icon(
-                                    Icons.create_sharp,
-                                    size: 10,
-                                  ),
-                                  onPressed: () {
-                                    filePicker();
-                                  }),
-                              decoration: BoxDecoration(
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.5),
-                                      spreadRadius: 2,
-                                      blurRadius: 7,
-                                      offset: Offset(
-                                          0, 3), // changes position of shadow
-                                    ),
-                                  ],
-                                  color: Colors.white,
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(50))),
+                                child: store.logo == null
+                                    ? Icon(Icons.image)
+                                    : Image.file(store.logo.file),
+                              ),
                             ),
-                          ),
-                        ],
+                            Positioned(
+                              bottom: 0,
+                              left: 0,
+                              child: Container(
+                                height: 20,
+                                width: 20,
+                                padding: EdgeInsets.fromLTRB(2, 0, 0, 2),
+                                child: IconButton(
+                                    //iconSize: 15,
+                                    color: orange,
+                                    icon: Icon(
+                                      Icons.create_sharp,
+                                      size: 10,
+                                    ),
+                                    onPressed: () {
+                                      filePicker().then((file) {
+                                        if (file != null)
+                                          context.read(storeProvider).state =
+                                              store..logo = ParseFile(file);
+                                      });
+                                    }),
+                                decoration: BoxDecoration(
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.5),
+                                        spreadRadius: 2,
+                                        blurRadius: 7,
+                                        offset: Offset(
+                                            0, 3), // changes position of shadow
+                                      ),
+                                    ],
+                                    color: Colors.white,
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(50))),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    Text(accountType == AccountType.captain
-                        ? "الصوره الشخصيه"
-                        : "الشعار (اختياري)"),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    Form(
-                      key: _formKey,
-                      child: TextFormField(
-                        validator: (value) {
-                          if (value.isEmpty)
-                            return "there have to be a name to the shope";
-                        },
-                        // maxLength: 10,
-                        // maxLengthEnforced: true,
-                        decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.store),
-                          hintText: "اسم المتجر",
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(50),
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(50),
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(50),
-                            borderSide: BorderSide(color: lightgrey),
+                      Text("الشعار"),
+                      SizedBox(height: 30),
+                      Form(
+                        key: _formKey,
+                        child: TextFormField(
+                          onChanged: (text) =>
+                              context.read(storeProvider).state.name = text,
+                          validator: (value) {
+                            if (value.isEmpty) return "يجب إدخال اسم للمتجر";
+                          },
+                          // maxLength: 10,
+                          // maxLengthEnforced: true,
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(Icons.store),
+                            hintText: "اسم المتجر",
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(50),
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).primaryColor),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(50),
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).primaryColor),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(50),
+                              borderSide: BorderSide(color: lightgrey),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    SizedBox(
-                      height: 30,
-                    ),
-
-                    //dropdown (countries)
-                    AjamDropdown(
-                      options: storeTypes,
-                      selectedState: storeTypeSelectedProvider,
-                    ),
-                    // Expanded(child: null),
-                    accountType == AccountType.captain
-                        ? Container(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 13, vertical: 13),
-                                  child: Text("صور السياره"),
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Column(
-                                      children: [
-                                        Container(
-                                          width: 80,
-                                          // color: Colors.red,
-                                          child: Stack(
-                                            children: [
-                                              Container(
-                                                  width: 80,
-                                                  height: 80,
-                                                  color: orange,
-                                                  child: file == null
-                                                      ? Container()
-                                                      : SizedBox(
-                                                          child: Image.file(
-                                                            file,
-                                                            fit: BoxFit.fill,
-                                                          ),
-                                                          height: 80,
-                                                          width: 80,
-                                                        )),
-                                              Positioned(
-                                                bottom: 0,
-                                                left: 0,
-                                                child: Container(
-                                                  height: 20,
-                                                  width: 20,
-                                                  padding: EdgeInsets.fromLTRB(
-                                                      2, 0, 0, 2),
-                                                  child: IconButton(
-                                                      //iconSize: 15,
-                                                      color: orange,
-                                                      icon: Icon(
-                                                        Icons.create_sharp,
-                                                        size: 10,
-                                                      ),
-                                                      onPressed: () {
-                                                        filePicker();
-                                                      }),
-                                                  decoration: BoxDecoration(
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                          color: Colors.grey
-                                                              .withOpacity(0.5),
-                                                          spreadRadius: 2,
-                                                          blurRadius: 7,
-                                                          offset: Offset(0,
-                                                              3), // changes position of shadow
-                                                        ),
-                                                      ],
-                                                      color: Colors.white,
-                                                      borderRadius:
-                                                          BorderRadius.all(
-                                                              Radius.circular(
-                                                                  50))),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Text("الامام"),
-                                      ],
-                                    ),
-                                    Column(
-                                      children: [
-                                        Container(
-                                          width: 80,
-                                          // color: Colors.red,
-                                          child: Stack(
-                                            children: [
-                                              Container(
-                                                  width: 80,
-                                                  height: 80,
-                                                  color: orange,
-                                                  child: file == null
-                                                      ? Container()
-                                                      : SizedBox(
-                                                          child: Image.file(
-                                                            file,
-                                                            fit: BoxFit.fill,
-                                                          ),
-                                                          height: 80,
-                                                          width: 80,
-                                                        )),
-                                              Positioned(
-                                                bottom: 0,
-                                                left: 0,
-                                                child: Container(
-                                                  height: 20,
-                                                  width: 20,
-                                                  padding: EdgeInsets.fromLTRB(
-                                                      2, 0, 0, 2),
-                                                  child: IconButton(
-                                                      //iconSize: 15,
-                                                      color: orange,
-                                                      icon: Icon(
-                                                        Icons.create_sharp,
-                                                        size: 10,
-                                                      ),
-                                                      onPressed: () {
-                                                        filePicker();
-                                                      }),
-                                                  decoration: BoxDecoration(
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                          color: Colors.grey
-                                                              .withOpacity(0.5),
-                                                          spreadRadius: 2,
-                                                          blurRadius: 7,
-                                                          offset: Offset(0,
-                                                              3), // changes position of shadow
-                                                        ),
-                                                      ],
-                                                      color: Colors.white,
-                                                      borderRadius:
-                                                          BorderRadius.all(
-                                                              Radius.circular(
-                                                                  50))),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Text("الخلف"),
-                                      ],
-                                    ),
-                                    Column(
-                                      children: [
-                                        Container(
-                                          width: 80,
-                                          // color: Colors.red,
-                                          child: Stack(
-                                            children: [
-                                              Container(
-                                                  width: 80,
-                                                  height: 80,
-                                                  color: orange,
-                                                  child: file == null
-                                                      ? Container()
-                                                      : SizedBox(
-                                                          child: Image.file(
-                                                            file,
-                                                            fit: BoxFit.fill,
-                                                          ),
-                                                          height: 80,
-                                                          width: 80,
-                                                        )),
-                                              Positioned(
-                                                bottom: 0,
-                                                left: 0,
-                                                child: Container(
-                                                  height: 20,
-                                                  width: 20,
-                                                  padding: EdgeInsets.fromLTRB(
-                                                      2, 0, 0, 2),
-                                                  child: IconButton(
-                                                      //iconSize: 15,
-                                                      color: orange,
-                                                      icon: Icon(
-                                                        Icons.create_sharp,
-                                                        size: 10,
-                                                      ),
-                                                      onPressed: () {
-                                                        filePicker();
-                                                      }),
-                                                  decoration: BoxDecoration(
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                          color: Colors.grey
-                                                              .withOpacity(0.5),
-                                                          spreadRadius: 2,
-                                                          blurRadius: 7,
-                                                          offset: Offset(0,
-                                                              3), // changes position of shadow
-                                                        ),
-                                                      ],
-                                                      color: Colors.white,
-                                                      borderRadius:
-                                                          BorderRadius.all(
-                                                              Radius.circular(
-                                                                  50))),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Text("الداخل"),
-                                      ],
-                                    ),
-                                    //iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
-                                  ],
-                                )
-                              ],
-                            ),
-                          )
-                        : Container()
-                  ],
-                ),
-              ),
-              InkWell(
-                onTap: () {
-                  validate(context);
-                },
-                child: Container(
-                  //width: ,
-                  height: 60,
-                  margin: EdgeInsets.all(20),
-                  padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        " حفظ ",
-                        style: TextStyle(color: Colors.white, fontSize: 20),
+                      SizedBox(
+                        height: 30,
                       ),
+
+                      //dropdown (countries)
+                      AjamDropdown(
+                        options: context
+                            .read(storeTypesProvider)
+                            .state
+                            .map<String>((e) => e.name)
+                            .toList(),
+                        selectedState: storeTypeSelectedProvider,
+                      ),
+                      // Expanded(child: null),
                     ],
                   ),
-                  decoration: BoxDecoration(
-                      color: darkblue,
-                      border: Border(),
-                      borderRadius: BorderRadius.all(Radius.circular(50))),
-                  //color: Colors.white,
                 ),
-              ),
-            ],
-          ),
+                InkWell(
+                  onTap: () {
+                    validate(context);
+                  },
+                  child: Container(
+                    //width: ,
+                    height: 60,
+                    margin: EdgeInsets.all(20),
+                    padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          " حفظ ",
+                          style: TextStyle(color: Colors.white, fontSize: 20),
+                        ),
+                      ],
+                    ),
+                    decoration: BoxDecoration(
+                        color: darkblue,
+                        border: Border(),
+                        borderRadius: BorderRadius.all(Radius.circular(50))),
+                    //color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+final captainProvider = StateProvider<Captain>((ref) {
+  final newCaptain = Captain();
+  newCaptain.user = ref.read(currentUserProvider).state;
+
+  return newCaptain;
+});
+
+class CaptainProfile extends ConsumerWidget {
+  final _formKey = GlobalKey<FormState>();
+  Future<File> filePicker() async {
+    FilePickerResult result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg'],
+    );
+    if (result.files != null) {
+      return File(result.files.single.path);
+    } else
+      return null;
+  }
+
+  Future validate(BuildContext context) async {
+    if (_formKey.currentState.validate()) {
+      final captain = context.read(captainProvider).state;
+      if (captain.photo == null ||
+          captain.carBack == null ||
+          captain.carFront == null ||
+          captain.carInside == null) {
+        exceptionSnackbar(context, provideImages);
+        return;
+      }
+      try {
+        final newCaptain = await saveParseObject(captain);
+        context.read(captainProvider).state = newCaptain;
+        context.read(signupStepProvider).state = SignupStep.done;
+      } catch (e) {
+        exceptionSnackbar(context, e);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, ScopedReader watch) {
+    final captain = watch(captainProvider).state;
+    final loading = watch(loadingProvider).state;
+
+    return SingleChildScrollView(
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 30),
+        child: watch(storedCaptainProvider).when(
+          data: (storedCaptain) {
+            if (storedCaptain != null)
+              context.read(captainProvider).state = storedCaptain;
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  margin: EdgeInsets.fromLTRB(0, 30, 0, 0),
+                  child: Column(
+                    children: [
+                      Text("لنقم باضافة معلومات عضويتك"),
+                      SizedBox(height: 30),
+                      Container(
+                        width: 80,
+                        child: Stack(
+                          children: [
+                            ClipOval(
+                              child: CircleAvatar(
+                                minRadius: 35,
+                                backgroundColor: green,
+                                child: captain.photo == null
+                                    ? Icon(Icons.image, color: Colors.white)
+                                    : Image.file(captain.photo.file),
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 0,
+                              left: 0,
+                              child: Container(
+                                height: 20,
+                                width: 20,
+                                padding: EdgeInsets.fromLTRB(2, 0, 0, 2),
+                                child: IconButton(
+                                    //iconSize: 15,
+                                    color: green,
+                                    icon: Icon(
+                                      Icons.create_sharp,
+                                      size: 10,
+                                    ),
+                                    onPressed: () {
+                                      filePicker().then((file) =>
+                                          context.read(captainProvider).state =
+                                              captain..photo = ParseFile(file));
+                                    }),
+                                decoration: BoxDecoration(
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.5),
+                                        spreadRadius: 2,
+                                        blurRadius: 7,
+                                        offset: Offset(
+                                            0, 3), // changes position of shadow
+                                      ),
+                                    ],
+                                    color: Colors.white,
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(50))),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text("الصوره الشخصيه"),
+                      SizedBox(height: 12),
+                      Form(
+                        key: _formKey,
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              onChanged: (text) => context
+                                  .read(captainProvider)
+                                  .state = captain..idNumber = text,
+                              validator: (value) {
+                                if (value.isEmpty) return "يجب إدخال قيمة";
+                              },
+                              initialValue: captain.idNumber ?? "",
+                              decoration: InputDecoration(
+                                prefixIcon: Icon(Icons.perm_identity),
+                                hintText: "رقم الهوية/الإقامة",
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(50),
+                                  borderSide: BorderSide(
+                                      color: Theme.of(context).primaryColor),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(50),
+                                  borderSide: BorderSide(
+                                      color: Theme.of(context).primaryColor),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(50),
+                                  borderSide: BorderSide(color: lightgrey),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 12),
+                            TextFormField(
+                              onChanged: (text) => context
+                                  .read(captainProvider)
+                                  .state = captain..iban = text,
+                              validator: (value) {
+                                if (value.isEmpty) return "يجب إدخال قيمة";
+                              },
+                              initialValue: captain.iban ?? "",
+                              decoration: InputDecoration(
+                                prefixIcon: Icon(Icons.money),
+                                hintText: "رقم حساب البنك IBAN",
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(50),
+                                  borderSide: BorderSide(
+                                      color: Theme.of(context).primaryColor),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(50),
+                                  borderSide: BorderSide(
+                                      color: Theme.of(context).primaryColor),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(50),
+                                  borderSide: BorderSide(color: lightgrey),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 30),
+                      Container(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 13, vertical: 13),
+                              child: Text("صور السياره"),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Column(
+                                  children: [
+                                    Container(
+                                      width: 80,
+                                      child: Stack(
+                                        children: [
+                                          Container(
+                                            width: 80,
+                                            height: 80,
+                                            color: green,
+                                            child: captain.carFront == null
+                                                ? Icon(Icons.image,
+                                                    color: Colors.white)
+                                                : Image.file(
+                                                    captain.carFront.file),
+                                          ),
+                                          Positioned(
+                                            bottom: 0,
+                                            left: 0,
+                                            child: Container(
+                                              height: 20,
+                                              width: 20,
+                                              padding: EdgeInsets.fromLTRB(
+                                                  2, 0, 0, 2),
+                                              child: IconButton(
+                                                  //iconSize: 15,
+                                                  color: green,
+                                                  icon: Icon(
+                                                    Icons.create_sharp,
+                                                    size: 10,
+                                                  ),
+                                                  onPressed: () {
+                                                    filePicker().then((file) =>
+                                                        context
+                                                            .read(
+                                                                captainProvider)
+                                                            .state = captain
+                                                          ..carFront =
+                                                              ParseFile(file));
+                                                  }),
+                                              decoration: BoxDecoration(
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.grey
+                                                          .withOpacity(0.5),
+                                                      spreadRadius: 2,
+                                                      blurRadius: 7,
+                                                      offset: Offset(0,
+                                                          3), // changes position of shadow
+                                                    ),
+                                                  ],
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.all(
+                                                          Radius.circular(50))),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Text("الأمام"),
+                                  ],
+                                ),
+                                Column(
+                                  children: [
+                                    Container(
+                                      width: 80,
+                                      // color: Colors.red,
+                                      child: Stack(
+                                        children: [
+                                          Container(
+                                            width: 80,
+                                            height: 80,
+                                            color: green,
+                                            child: captain.carBack == null
+                                                ? Icon(Icons.image,
+                                                    color: Colors.white)
+                                                : Image.file(
+                                                    captain.carBack.file),
+                                          ),
+                                          Positioned(
+                                            bottom: 0,
+                                            left: 0,
+                                            child: Container(
+                                              height: 20,
+                                              width: 20,
+                                              padding: EdgeInsets.fromLTRB(
+                                                  2, 0, 0, 2),
+                                              child: IconButton(
+                                                  //iconSize: 15,
+                                                  color: green,
+                                                  icon: Icon(
+                                                    Icons.create_sharp,
+                                                    size: 10,
+                                                  ),
+                                                  onPressed: () {
+                                                    filePicker().then((file) =>
+                                                        context
+                                                            .read(
+                                                                captainProvider)
+                                                            .state = captain
+                                                          ..carBack =
+                                                              ParseFile(file));
+                                                  }),
+                                              decoration: BoxDecoration(
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.grey
+                                                          .withOpacity(0.5),
+                                                      spreadRadius: 2,
+                                                      blurRadius: 7,
+                                                      offset: Offset(0,
+                                                          3), // changes position of shadow
+                                                    ),
+                                                  ],
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.all(
+                                                          Radius.circular(50))),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Text("الخلف"),
+                                  ],
+                                ),
+                                Column(
+                                  children: [
+                                    Container(
+                                      width: 80,
+                                      // color: Colors.red,
+                                      child: Stack(
+                                        children: [
+                                          Container(
+                                            width: 80,
+                                            height: 80,
+                                            color: green,
+                                            child: captain.carInside == null
+                                                ? Icon(Icons.image,
+                                                    color: Colors.white)
+                                                : Image.file(
+                                                    captain.carInside.file),
+                                          ),
+                                          Positioned(
+                                            bottom: 0,
+                                            left: 0,
+                                            child: Container(
+                                              height: 20,
+                                              width: 20,
+                                              padding: EdgeInsets.fromLTRB(
+                                                  2, 0, 0, 2),
+                                              child: IconButton(
+                                                  //iconSize: 15,
+                                                  color: green,
+                                                  icon: Icon(
+                                                    Icons.create_sharp,
+                                                    size: 10,
+                                                  ),
+                                                  onPressed: () {
+                                                    filePicker().then((file) =>
+                                                        context
+                                                            .read(
+                                                                captainProvider)
+                                                            .state = captain
+                                                          ..carInside =
+                                                              ParseFile(file));
+                                                  }),
+                                              decoration: BoxDecoration(
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.grey
+                                                          .withOpacity(0.5),
+                                                      spreadRadius: 2,
+                                                      blurRadius: 7,
+                                                      offset: Offset(0,
+                                                          3), // changes position of shadow
+                                                    ),
+                                                  ],
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.all(
+                                                          Radius.circular(50))),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Text("الداخل"),
+                                  ],
+                                ),
+                                //iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
+                              ],
+                            )
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                InkWell(
+                  onTap: () async {
+                    context.read(loadingProvider).state = true;
+                    await validate(context);
+                    context.read(loadingProvider).state = false;
+                  },
+                  child: Container(
+                    //width: ,
+                    height: 60,
+                    margin: EdgeInsets.all(20),
+                    padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        loading
+                            ? CircularProgressIndicator()
+                            : Text(
+                                "حفظ",
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 20),
+                              ),
+                      ],
+                    ),
+                    decoration: BoxDecoration(
+                        color: darkblue,
+                        border: Border(),
+                        borderRadius: BorderRadius.all(Radius.circular(50))),
+                    //color: Colors.white,
+                  ),
+                ),
+              ],
+            );
+          },
           error: (e, stack) {
+            print(e);
+            print(stack);
             exceptionSnackbar(context, e);
             return Center(child: Icon(Icons.error));
           },
@@ -660,15 +924,6 @@ class AjamProfile extends ConsumerWidget {
         ),
       ),
     );
-  }
-}
-
-class AjamDone extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, ScopedReader watch) {
-    final accountType = watch(accountTypeProvider).state;
-
-    return OwnerDone();
   }
 }
 
@@ -721,6 +976,49 @@ class OwnerDone extends StatelessWidget {
   }
 }
 
+class AjamDone extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, watch) {
+    final accountType = watch(accountTypeProvider).state;
+
+    return Expanded(
+      child: Container(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.check_circle,
+                    color: Theme.of(context).primaryColor,
+                    size: 50,
+                  ),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  Text(
+                    accountType == AccountType.captain
+                        ? "تم حفظ ملفك"
+                        : "تم حفظ بيانات متجرك بنجاح",
+                    style: TextStyle(fontSize: 20, color: darkblue),
+                  ),
+                ],
+              ),
+              Text(
+                "نقوم الآن بتسجيل الشركاء و بناء قاعدة البيانات\nترقبوا افتتاح المتاجر بتاريخ 15/2/2021",
+                style: TextStyle(color: darkgrey),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class AjamAppBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ScopedReader watch) {
@@ -749,7 +1047,7 @@ class AjamAppBar extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(13, 0, 5, 0),
                   child: IconButton(
                     onPressed: () {
-                      context.read(signupStepProvider).state = SignupStep.form;
+                      logout();
                       Navigator.pop(context);
                     },
                     icon: Icon(
@@ -789,26 +1087,35 @@ class AjamAppBar extends ConsumerWidget {
 }
 
 final _passwordMatchProvider = StateProvider<String>((ref) => "");
+final RegExp emailRegex = new RegExp(
+  r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$",
+  caseSensitive: false,
+  multiLine: false,
+);
 
 class AjamForm extends ConsumerWidget {
   final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context, ScopedReader watch) {
-    final accountType = watch(accountTypeProvider).state;
-    final step = watch(signupStepProvider).state;
-    String name;
-    String password;
-    String email;
-
     void submit(BuildContext context) {
       if (_formKey.currentState.validate()) {
-        signupAndRequestOTP(context.read(currentUserProvider).state)
-            .then((user) {
-          context.read(currentUserProvider).state = user;
-          context.read(_passwordMatchProvider).state;
-          context.read(signupStepProvider).state = SignupStep.verification;
-        }).catchError((e) => exceptionSnackbar(context, e));
+        final user = context.read(currentUserProvider).state;
+        final match = context.read(_passwordMatchProvider).state;
+
+        if (user.password != match) {
+          exceptionSnackbar(context, noPasswordMatch);
+        } else {
+          user.set("country", context.read(countrySelectedProvider).state);
+          user.set("city", context.read(citySelectedProvider).state);
+          signupAndRequestOTP(context.read(currentUserProvider).state)
+              .then((user) {
+            print(user);
+            context.read(currentUserProvider).state = user;
+            context.read(_passwordMatchProvider).dispose();
+            context.read(signupStepProvider).state = SignupStep.verification;
+          }).catchError((e) => exceptionSnackbar(context, e));
+        }
       }
     }
 
@@ -950,8 +1257,16 @@ class AjamForm extends ConsumerWidget {
                 ),
                 //email
                 TextFormField(
-                  onChanged: (value) {
-                    email = value;
+                  validator: (value) {
+                    if (value.length == 0) return null;
+                    if (RegExp(
+                            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                        .hasMatch(value)) {
+                      context.read(currentUserProvider).state.emailAddress =
+                          value;
+                    }
+
+                    return "الرجاء إدخال بريد إلكتروني صحيح";
                   },
                   // maxLength: 10,
                   // maxLengthEnforced: true,

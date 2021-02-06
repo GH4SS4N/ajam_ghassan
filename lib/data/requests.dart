@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:ajam/data/StoreType.dart';
 
+import 'Captain.dart';
 import 'Exceptions.dart';
 import 'Store.dart';
 import 'config.dart';
@@ -7,27 +10,59 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 
 final currentUserProvider =
-    StateProvider<ParseUser>((ref) => ParseUser("123456789", "", ""));
+    StateProvider<ParseUser>((ref) => ParseUser("", "", null));
 
 final otpPassword = StateProvider<String>((ref) => "");
+final storeTypesProvider = StateProvider<List<StoreType>>((ref) => []);
 
 /*
  * FutureProviders
  */
 // watch(connectionProvider).when(data: (parse) {}, error: (e, stack){}, loading: (){});
 
-final storeProvider = FutureProvider<Store>(
+Future<Store> getStoredStore(ParseUser user) async {
+  final queryBuilder = QueryBuilder<Store>(Store())
+    ..whereMatchesQuery("user", QueryBuilder(user));
+
+  final response = await _parseRequest(queryBuilder.query);
+
+  final Store store = response.results?.elementAt(0);
+
+  if (store == null) return Store()..user = user;
+
+  store.logo = await store.logo.download();
+
+  return store;
+}
+
+final storedCaptainProvider = FutureProvider<Captain>(
   (ref) async {
-    final queryBuilder = QueryBuilder<Store>(Store())
-      ..whereMatchesQuery(
-          "user", QueryBuilder(ref.watch(currentUserProvider).state));
+    final queryBuilder = QueryBuilder<Captain>(Captain())
+      ..whereEqualTo("user", ref.watch(currentUserProvider).state.objectId);
 
     final response = await _parseRequest(queryBuilder.query);
 
-    return response.results?.elementAt(0) ?? Store()
-      ..user = ref.read(currentUserProvider);
+    final Captain captain = response.results?.elementAt(0);
+
+    if (captain == null) return null;
+
+    captain.photo = await captain.photo.download();
+    captain.carFront = await captain.carFront.download();
+    captain.carBack = await captain.carBack.download();
+    captain.carInside = await captain.carInside.download();
+
+    return captain;
   },
 );
+
+final imageProvider =
+    FutureProvider.family<File, ParseFile>((ref, image) async {
+  if (image == null) return null;
+
+  ParseFile downloaded = await _parseRequest(image.download);
+
+  return downloaded.file;
+});
 
 final connectionProvider = FutureProvider<Parse>(
   (ref) async {
@@ -39,23 +74,18 @@ final connectionProvider = FutureProvider<Parse>(
     );
   },
 );
-
-final storeTypesProvider = FutureProvider<List<String>>(
-  (ref) async {
-    final response = await _parseRequest(StoreType().getAll);
-
-    final results = response.results
-        .map<String>((storeType) => (storeType as StoreType).name)
-        .toList();
-
-    return results;
-  },
-);
-
 /*
  * Future functions
  */
 // userByPhoneNumber(username).then((ParseUser) => doSomething).catchError((e, stack) => exceptionSnackbar(context, e));
+
+Future<List<StoreType>> getStoreTypes() async {
+  final ParseResponse response = await _parseRequest(StoreType().getAll);
+
+  final results = response.results.cast<StoreType>();
+
+  return results;
+}
 
 // returns ParseUser if exists, and null if none exist
 Future<ParseUser> userByPhoneNumber(String username) async {
@@ -81,7 +111,7 @@ Future<ParseUser> signupAndRequestOTP(ParseUser user) async {
 }
 
 Future<ParseUser> loginAndRequestOTP(ParseUser user) async {
-  ParseUser newUser = await _login(user);
+  ParseUser newUser = await login(user);
 
   try {
     await _otpRequest(newUser.username);
@@ -103,7 +133,7 @@ Future<ParseUser> _signup(ParseUser user) async {
 }
 
 // resturns ParseUser
-Future<ParseUser> _login(ParseUser user) async {
+Future<ParseUser> login(ParseUser user) async {
   final response = await _parseRequest(user.login);
 
   if (response.error?.code == 101) throw wrongPassword;
@@ -136,6 +166,7 @@ Future otpVerify(String username, String password) async {
 
   switch (response.error?.code) {
     case 406:
+      _otpRequest(username);
       throw otpExpired;
       break;
     case 409:
@@ -154,9 +185,9 @@ Future<ParseObject> saveParseObject(ParseObject object) async {
 /*
  * Base requester
  */
-Future<ParseResponse> _parseRequest(Function request) async {
+Future _parseRequest(Function request) async {
   try {
-    final ParseResponse response = await request();
+    final response = await request();
 
     if (response.error != null && (response.error.code ~/ 100) % 10 == 5) {
       throw Exception();
