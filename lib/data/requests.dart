@@ -84,7 +84,7 @@ Future<List<ParseObject>> getStoreTypes() async {
   final ParseResponse response =
       await _parseRequest(ParseObject("StoreType").getAll);
 
-  final results = response.results.cast<ParseObject>();
+  final results = response.results;
 
   return results;
 }

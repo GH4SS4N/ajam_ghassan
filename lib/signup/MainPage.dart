@@ -1,6 +1,7 @@
 import 'package:ajam/data/Exceptions.dart';
 import 'package:ajam/data/requests.dart';
 import 'package:ajam/signup/signupSteps.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -40,9 +41,21 @@ class MainPage extends StatelessWidget {
                 shape: new RoundedRectangleBorder(
                   borderRadius: new BorderRadius.circular(50.0),
                 ),
-                child: Text(
-                  "اتصل بنا على تويتر",
-                  style: TextStyle(color: Colors.white),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                      child: Icon(
+                        Icons.mail,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      "اتصل بنا على تويتر",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ],
                 ),
               )
             ],
@@ -98,10 +111,34 @@ class AccountTypeList extends StatelessWidget {
 final loadingProvider = StateProvider<bool>((ref) => false);
 
 class AccountAlertDialog extends ConsumerWidget {
+  final _formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context, ScopedReader watch) {
     final accountType = watch(accountTypeProvider).state;
     final consumeLoading = watch(loadingProvider);
+
+    void submit(BuildContext context) {
+      if (_formKey.currentState.validate()) {
+        consumeLoading.state = true;
+        // get phone number which is username
+        final username = context.read(currentUserProvider).state.username;
+        userByPhoneNumber(username).then(
+          (user) {
+            // set loading to false
+            consumeLoading.state = false;
+            context.read(signupStepProvider).state =
+                user == null ? SignupStep.form : SignupStep.login;
+            Navigator.pop(context);
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SignupSteps(),
+                ));
+          },
+        ).catchError((e) => exceptionSnackbar(context, e));
+      }
+    }
 
     return AlertDialog(
       contentPadding: EdgeInsets.only(right: 12, left: 12, top: 12),
@@ -116,28 +153,39 @@ class AccountAlertDialog extends ConsumerWidget {
           ),
         ],
       ),
-      content: TextField(
-        keyboardType: TextInputType.number,
-        inputFormatters: <TextInputFormatter>[
-          FilteringTextInputFormatter.digitsOnly
-        ], // Only numbers can be entered
-        maxLength: 9,
-        maxLengthEnforced: true,
-        onChanged: (text) {
-          final readUser = context.read(currentUserProvider);
-          readUser.state = readUser.state..username = text;
-        },
-        decoration: InputDecoration(
-          prefixIcon: Icon(Icons.account_circle),
-          //icon: Icon(Icons.phone),
-          hintText: "501231234",
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(50),
-            borderSide: BorderSide(color: Theme.of(context).primaryColor),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(50),
-            borderSide: BorderSide(color: lightgrey),
+      content: Form(
+        key: _formKey,
+        child: TextFormField(
+          validator: (value) {
+            if (value.isEmpty)
+              return "ادخل رقم الجوال";
+            else if (value.length < 9) {
+              return "رقم الجوال يجب ان يتكون من 9 ارقام";
+            }
+          },
+
+          keyboardType: TextInputType.number,
+          inputFormatters: <TextInputFormatter>[
+            FilteringTextInputFormatter.digitsOnly
+          ], // Only numbers can be entered
+          maxLength: 9,
+          maxLengthEnforced: true,
+          onChanged: (text) {
+            final readUser = context.read(currentUserProvider);
+            readUser.state = readUser.state..username = text;
+          },
+          decoration: InputDecoration(
+            prefixIcon: Icon(Icons.account_circle),
+            //icon: Icon(Icons.phone),
+            hintText: "501231234 مثال ",
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(50),
+              borderSide: BorderSide(color: Theme.of(context).primaryColor),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(50),
+              borderSide: BorderSide(color: lightgrey),
+            ),
           ),
         ),
       ),
@@ -145,23 +193,7 @@ class AccountAlertDialog extends ConsumerWidget {
         FlatButton(
           onPressed: () {
             // set loading to true
-            consumeLoading.state = true;
-            // get phone number which is username
-            final username = context.read(currentUserProvider).state.username;
-            userByPhoneNumber(username).then(
-              (user) {
-                // set loading to false
-                consumeLoading.state = false;
-                context.read(signupStepProvider).state =
-                    user == null ? SignupStep.form : SignupStep.login;
-                Navigator.pop(context);
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SignupSteps(),
-                    ));
-              },
-            ).catchError((e) => exceptionSnackbar(context, e));
+            submit(context);
           },
           color: darkblue,
           shape: new RoundedRectangleBorder(

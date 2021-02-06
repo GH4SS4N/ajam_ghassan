@@ -290,7 +290,7 @@ class AjamProfile extends ConsumerWidget {
   }
 }
 
-final StateProvider<Store> storeProvider = StateProvider<Store>((ref) {
+final storeProvider = StateProvider.autoDispose<Store>((ref) {
   getStoreTypes().then((types) {
     ref.read(storeTypesProvider).state = types;
 
@@ -364,6 +364,7 @@ class StoreProfile extends ConsumerWidget {
                       ),
                       Container(
                         width: 80,
+                        height: 80,
                         // color: Colors.red,
                         child: Stack(
                           children: [
@@ -499,7 +500,7 @@ class StoreProfile extends ConsumerWidget {
   }
 }
 
-final captainProvider = StateProvider<Captain>((ref) {
+final captainProvider = StateProvider.autoDispose<Captain>((ref) {
   final newCaptain = Captain();
   newCaptain.user = ref.read(currentUserProvider).state;
 
@@ -563,6 +564,7 @@ class CaptainProfile extends ConsumerWidget {
                       SizedBox(height: 30),
                       Container(
                         width: 80,
+                        height: 80,
                         child: Stack(
                           children: [
                             ClipOval(
@@ -571,7 +573,10 @@ class CaptainProfile extends ConsumerWidget {
                                 backgroundColor: green,
                                 child: captain.photo == null
                                     ? Icon(Icons.image, color: Colors.white)
-                                    : Image.file(captain.photo.file),
+                                    : Image.file(
+                                        captain.photo.file,
+                                        fit: BoxFit.cover,
+                                      ),
                               ),
                             ),
                             Positioned(

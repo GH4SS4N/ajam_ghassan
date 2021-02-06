@@ -5,6 +5,7 @@ import 'package:ajam/data/requests.dart';
 import 'package:ajam/signup/MainPage.dart';
 import 'package:ajam/signup/signupSteps.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/all.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 
@@ -27,6 +28,10 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(context, watch) {
     final accountType = watch(accountTypeProvider).state;
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,

@@ -17,6 +17,7 @@ dependencies:
   parse_server_sdk: ^2.0.1
   url_launcher: ^5.7.10
   path_provider: ^1.6.27
+  eva_icons_flutter: ^2.0.1
 
   cupertino_icons: ^1.0.0
 
