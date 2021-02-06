@@ -4,7 +4,6 @@ import 'package:ajam/Widgets/ajamDropdownMenu.dart';
 import 'package:ajam/data/Captain.dart';
 import 'package:ajam/data/Exceptions.dart';
 import 'package:ajam/data/Store.dart';
-import 'package:ajam/data/requests.dart';
 import 'package:ajam/main.dart';
 import 'package:ajam/signup/MainPage.dart';
 import 'package:file_picker/file_picker.dart';
@@ -13,12 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/all.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
+import 'package:ajam/data/requests.dart';
 
 import '../staticData.dart';
-
-enum SignupStep { login, form, verification, profile, done }
-
-final signupStepProvider = StateProvider<SignupStep>((ref) => SignupStep.login);
 
 class SignupSteps extends ConsumerWidget {
   @override
@@ -289,7 +285,7 @@ class AjamProfile extends ConsumerWidget {
   }
 }
 
-final StateProvider<Store> storeProvider = StateProvider<Store>((ref) {
+final storeProvider = StateProvider.autoDispose<Store>((ref) {
   getStoreTypes().then((types) {
     ref.read(storeTypesProvider).state = types;
 
@@ -364,6 +360,7 @@ class StoreProfile extends ConsumerWidget {
                       ),
                       Container(
                         width: 80,
+                        height: 80,
                         // color: Colors.red,
                         child: Stack(
                           children: [
@@ -498,7 +495,7 @@ class StoreProfile extends ConsumerWidget {
   }
 }
 
-final captainProvider = StateProvider<Captain>((ref) {
+final captainProvider = StateProvider.autoDispose<Captain>((ref) {
   final newCaptain = Captain();
   newCaptain.user = ref.read(currentUserProvider).state;
 
@@ -562,6 +559,7 @@ class CaptainProfile extends ConsumerWidget {
                       SizedBox(height: 30),
                       Container(
                         width: 80,
+                        height: 80,
                         child: Stack(
                           children: [
                             ClipOval(
@@ -570,7 +568,10 @@ class CaptainProfile extends ConsumerWidget {
                                 backgroundColor: green,
                                 child: captain.photo == null
                                     ? Icon(Icons.image, color: Colors.white)
-                                    : Image.file(captain.photo.file),
+                                    : Image.file(
+                                        captain.photo.file,
+                                        fit: BoxFit.cover,
+                                      ),
                               ),
                             ),
                             Positioned(
@@ -1090,7 +1091,7 @@ class AjamAppBar extends ConsumerWidget {
   }
 }
 
-final _passwordMatchProvider = StateProvider<String>((ref) => "");
+final _passwordMatchProvider = StateProvider.autoDispose<String>((ref) => "");
 final RegExp emailRegex = new RegExp(
   r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$",
   caseSensitive: false,

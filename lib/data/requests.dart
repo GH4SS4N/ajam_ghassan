@@ -9,6 +9,15 @@ import 'config.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 
+enum SignupStep { login, form, verification, profile, done }
+
+final signupStepProvider = StateProvider<SignupStep>((ref) => SignupStep.form);
+
+enum AccountType { captain, owner, none }
+
+final accountTypeProvider =
+    StateProvider<AccountType>((ref) => AccountType.owner);
+
 final currentUserProvider =
     StateProvider<ParseUser>((ref) => ParseUser("562648168", "", null));
 
@@ -84,7 +93,7 @@ Future<List<ParseObject>> getStoreTypes() async {
   final ParseResponse response =
       await _parseRequest(ParseObject("StoreType").getAll);
 
-  final results = response.results.cast<ParseObject>();
+  final results = response.results;
 
   return results;
 }
