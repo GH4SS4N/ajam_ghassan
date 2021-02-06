@@ -50,8 +50,8 @@ class MyApp extends ConsumerWidget {
         loading: () =>
             Container(child: Center(child: CircularProgressIndicator())),
         error: (e, stack) {
-          exceptionSnackbar(context, e);
-          return Container(child: Center(child: Icon(Icons.error)));
+          return Scaffold(
+              body: Container(child: Center(child: Text(e.toString()))));
         },
       ),
     );
@@ -124,7 +124,7 @@ class MyHomePage extends StatelessWidget {
                         style: TextStyle(fontSize: 20),
                       ),
                       Text(
-                        " ترقبوا افتتاح المتاجر بتاريخ 15/2/2021",
+                        "ترقبونا قريبا",
                         style: TextStyle(fontSize: 20),
                       ),
                     ],

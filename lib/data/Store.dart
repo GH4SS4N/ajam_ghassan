@@ -1,4 +1,3 @@
-import 'StoreType.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 
 class Store extends ParseObject implements ParseCloneable {
@@ -18,8 +17,9 @@ class Store extends ParseObject implements ParseCloneable {
   set logo(ParseFile logo) => set(logoKey, logo);
 
   static const String storeTypeKey = "storeType";
-  StoreType get storeType => get(storeTypeKey);
-  set storeType(StoreType storeType) => set(storeTypeKey, storeType);
+
+  ParseObject get storeType => get(storeTypeKey);
+  set storeType(ParseObject storeType) => set(storeTypeKey, storeType);
 
   static const String userKey = "user";
   ParseUser get user => get(userKey);

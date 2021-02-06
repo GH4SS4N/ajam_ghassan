@@ -295,6 +295,8 @@ final StateProvider<Store> storeProvider = StateProvider<Store>((ref) {
     ref.read(storeTypesProvider).state = types;
 
     getStoredStore(ref.watch(currentUserProvider).state).then((store) {
+      print(store.storeType.get("name"));
+      ref.read(storeTypeSelectedProvider).state = store.storeType.get("name");
       ref.read(storeProvider).state = store;
     });
   });
@@ -310,7 +312,7 @@ class StoreProfile extends ConsumerWidget {
       allowedExtensions: ['jpg'],
     );
 
-    if (result.files != null) {
+    if (result != null) {
       return File(result.files.single.path);
     } else
       return null;
@@ -327,7 +329,7 @@ class StoreProfile extends ConsumerWidget {
       final storeTypes = context.read(storeTypesProvider).state;
       final selectedType = context.read(storeTypeSelectedProvider).state;
       store.storeType =
-          storeTypes.firstWhere((type) => type.name == selectedType);
+          storeTypes.firstWhere((type) => type.get("name") == selectedType);
 
       try {
         final newStore = await saveParseObject(store);
@@ -343,8 +345,8 @@ class StoreProfile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ScopedReader watch) {
     final store = watch(storeProvider).state;
+    final loading = watch(loadingProvider).state;
 
-    print("building");
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 30),
       child: store == null
@@ -423,8 +425,7 @@ class StoreProfile extends ConsumerWidget {
                           validator: (value) {
                             if (value.isEmpty) return "يجب إدخال اسم للمتجر";
                           },
-                          // maxLength: 10,
-                          // maxLengthEnforced: true,
+                          initialValue: store.name,
                           decoration: InputDecoration(
                             prefixIcon: Icon(Icons.store),
                             hintText: "اسم المتجر",
@@ -454,7 +455,7 @@ class StoreProfile extends ConsumerWidget {
                         options: context
                             .read(storeTypesProvider)
                             .state
-                            .map<String>((e) => e.name)
+                            .map<String>((e) => e.get("name"))
                             .toList(),
                         selectedState: storeTypeSelectedProvider,
                       ),
@@ -464,7 +465,9 @@ class StoreProfile extends ConsumerWidget {
                 ),
                 InkWell(
                   onTap: () {
+                    context.read(loadingProvider).state = true;
                     validate(context);
+                    context.read(loadingProvider).state = false;
                   },
                   child: Container(
                     //width: ,
@@ -474,10 +477,13 @@ class StoreProfile extends ConsumerWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          " حفظ ",
-                          style: TextStyle(color: Colors.white, fontSize: 20),
-                        ),
+                        loading
+                            ? CircularProgressIndicator()
+                            : Text(
+                                " حفظ ",
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 20),
+                              ),
                       ],
                     ),
                     decoration: BoxDecoration(
@@ -502,12 +508,13 @@ final captainProvider = StateProvider<Captain>((ref) {
 
 class CaptainProfile extends ConsumerWidget {
   final _formKey = GlobalKey<FormState>();
+
   Future<File> filePicker() async {
     FilePickerResult result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['jpg'],
     );
-    if (result.files != null) {
+    if (result != null) {
       return File(result.files.single.path);
     } else
       return null;
@@ -516,14 +523,14 @@ class CaptainProfile extends ConsumerWidget {
   Future validate(BuildContext context) async {
     if (_formKey.currentState.validate()) {
       final captain = context.read(captainProvider).state;
-      if (captain.photo == null ||
-          captain.carBack == null ||
-          captain.carFront == null ||
-          captain.carInside == null) {
-        exceptionSnackbar(context, provideImages);
-        return;
-      }
       try {
+        if (captain.photo == null ||
+            captain.carBack == null ||
+            captain.carFront == null ||
+            captain.carInside == null) {
+          throw provideImages;
+        }
+
         final newCaptain = await saveParseObject(captain);
         context.read(captainProvider).state = newCaptain;
         context.read(signupStepProvider).state = SignupStep.done;
@@ -575,7 +582,6 @@ class CaptainProfile extends ConsumerWidget {
                                 width: 20,
                                 padding: EdgeInsets.fromLTRB(2, 0, 0, 2),
                                 child: IconButton(
-                                    //iconSize: 15,
                                     color: green,
                                     icon: Icon(
                                       Icons.create_sharp,
@@ -642,9 +648,8 @@ class CaptainProfile extends ConsumerWidget {
                               onChanged: (text) => context
                                   .read(captainProvider)
                                   .state = captain..iban = text,
-                              validator: (value) {
-                                if (value.isEmpty) return "يجب إدخال قيمة";
-                              },
+                              validator: (value) =>
+                                  value.isEmpty ? "يجب إدخال قيمة" : null,
                               initialValue: captain.iban ?? "",
                               decoration: InputDecoration(
                                 prefixIcon: Icon(Icons.money),
@@ -1007,7 +1012,7 @@ class AjamDone extends ConsumerWidget {
                 ],
               ),
               Text(
-                "نقوم الآن بتسجيل الشركاء و بناء قاعدة البيانات\nترقبوا افتتاح المتاجر بتاريخ 15/2/2021",
+                "ترقبونا قريبا",
                 style: TextStyle(color: darkgrey),
                 textAlign: TextAlign.center,
               ),
@@ -1334,12 +1339,7 @@ class ImageCard extends StatelessWidget {
 
     if (result != null) {
       image = File(result.files.single.path);
-      // state provider for the images
-      print(image.toString());
-    } else {
-      // User canceled the picker
     }
-    //
   }
 
   @override

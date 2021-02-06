@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:ajam/data/StoreType.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'Captain.dart';
 import 'Exceptions.dart';
@@ -13,7 +13,7 @@ final currentUserProvider =
     StateProvider<ParseUser>((ref) => ParseUser("", "", null));
 
 final otpPassword = StateProvider<String>((ref) => "");
-final storeTypesProvider = StateProvider<List<StoreType>>((ref) => []);
+final storeTypesProvider = StateProvider<List<ParseObject>>((ref) => []);
 
 /*
  * FutureProviders
@@ -71,6 +71,7 @@ final connectionProvider = FutureProvider<Parse>(
       serverUrl,
       clientKey: clientKey,
       debug: true,
+      fileDirectory: (await getExternalStorageDirectory()).path,
     );
   },
 );
@@ -79,10 +80,11 @@ final connectionProvider = FutureProvider<Parse>(
  */
 // userByPhoneNumber(username).then((ParseUser) => doSomething).catchError((e, stack) => exceptionSnackbar(context, e));
 
-Future<List<StoreType>> getStoreTypes() async {
-  final ParseResponse response = await _parseRequest(StoreType().getAll);
+Future<List<ParseObject>> getStoreTypes() async {
+  final ParseResponse response =
+      await _parseRequest(ParseObject("StoreType").getAll);
 
-  final results = response.results.cast<StoreType>();
+  final results = response.results.cast<ParseObject>();
 
   return results;
 }
