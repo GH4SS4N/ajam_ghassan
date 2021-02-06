@@ -16,11 +16,6 @@ import 'package:parse_server_sdk/parse_server_sdk.dart';
 
 import '../staticData.dart';
 
-enum SignupStep { login, form, verification, profile, done }
-
-final signupStepProvider =
-    StateProvider<SignupStep>((ref) => SignupStep.profile);
-
 class SignupSteps extends ConsumerWidget {
   @override
   Widget build(context, watch) {
@@ -1096,7 +1091,7 @@ class AjamAppBar extends ConsumerWidget {
   }
 }
 
-final _passwordMatchProvider = StateProvider<String>((ref) => "");
+final _passwordMatchProvider = StateProvider.autoDispose<String>((ref) => "");
 final RegExp emailRegex = new RegExp(
   r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$",
   caseSensitive: false,

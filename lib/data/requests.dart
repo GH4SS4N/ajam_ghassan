@@ -9,8 +9,17 @@ import 'config.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 
+enum SignupStep { login, form, verification, profile, done }
+
+final signupStepProvider = StateProvider<SignupStep>((ref) => SignupStep.form);
+
+enum AccountType { captain, owner, none }
+
+final accountTypeProvider =
+    StateProvider<AccountType>((ref) => AccountType.captain);
+
 final currentUserProvider =
-    StateProvider<ParseUser>((ref) => ParseUser("", "", null));
+    StateProvider<ParseUser>((ref) => ParseUser("", "", ""));
 
 final otpPassword = StateProvider<String>((ref) => "");
 final storeTypesProvider = StateProvider<List<ParseObject>>((ref) => []);
