@@ -12,7 +12,7 @@ import '../main.dart';
 enum AccountType { captain, owner, none }
 
 final accountTypeProvider =
-    StateProvider<AccountType>((ref) => AccountType.captain);
+    StateProvider<AccountType>((ref) => AccountType.owner);
 
 class MainPage extends StatelessWidget {
   @override

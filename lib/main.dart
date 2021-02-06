@@ -124,7 +124,7 @@ class MyHomePage extends StatelessWidget {
                         style: TextStyle(fontSize: 20),
                       ),
                       Text(
-                        "ترقبونا قريبا",
+                        "نقوم الآن بتسجيل الشركاء و بناء قاعدة البيانات\nترقبونا قريبا",
                         style: TextStyle(fontSize: 20),
                       ),
                     ],

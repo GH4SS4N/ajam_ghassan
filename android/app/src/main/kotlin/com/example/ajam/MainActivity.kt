@@ -1,4 +1,4 @@
-package com.example.ajam
+package com.ajamapp.ajampartners
 
 import io.flutter.embedding.android.FlutterActivity
 

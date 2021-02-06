@@ -18,8 +18,7 @@ import '../staticData.dart';
 
 enum SignupStep { login, form, verification, profile, done }
 
-final signupStepProvider =
-    StateProvider<SignupStep>((ref) => SignupStep.profile);
+final signupStepProvider = StateProvider<SignupStep>((ref) => SignupStep.login);
 
 class SignupSteps extends ConsumerWidget {
   @override
@@ -295,7 +294,8 @@ final StateProvider<Store> storeProvider = StateProvider<Store>((ref) {
     ref.read(storeTypesProvider).state = types;
 
     getStoredStore(ref.watch(currentUserProvider).state).then((store) {
-      print(store.storeType.get("name"));
+      print("Store store type!");
+      print(store.storeType);
       ref.read(storeTypeSelectedProvider).state = store.storeType.get("name");
       ref.read(storeProvider).state = store;
     });
@@ -470,7 +470,6 @@ class StoreProfile extends ConsumerWidget {
                     context.read(loadingProvider).state = false;
                   },
                   child: Container(
-                    //width: ,
                     height: 60,
                     margin: EdgeInsets.all(20),
                     padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
@@ -1012,7 +1011,7 @@ class AjamDone extends ConsumerWidget {
                 ],
               ),
               Text(
-                "ترقبونا قريبا",
+                "نقوم الآن بتسجيل الشركاء و بناء قاعدة البيانات\nترقبونا قريبا",
                 style: TextStyle(color: darkgrey),
                 textAlign: TextAlign.center,
               ),
@@ -1115,7 +1114,6 @@ class AjamForm extends ConsumerWidget {
           user.set("city", context.read(citySelectedProvider).state);
           signupAndRequestOTP(context.read(currentUserProvider).state)
               .then((user) {
-            print(user);
             context.read(currentUserProvider).state = user;
             context.read(_passwordMatchProvider).dispose();
             context.read(signupStepProvider).state = SignupStep.verification;

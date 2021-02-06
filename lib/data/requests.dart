@@ -10,7 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 
 final currentUserProvider =
-    StateProvider<ParseUser>((ref) => ParseUser("", "", null));
+    StateProvider<ParseUser>((ref) => ParseUser("562648168", "", null));
 
 final otpPassword = StateProvider<String>((ref) => "");
 final storeTypesProvider = StateProvider<List<ParseObject>>((ref) => []);
@@ -22,7 +22,8 @@ final storeTypesProvider = StateProvider<List<ParseObject>>((ref) => []);
 
 Future<Store> getStoredStore(ParseUser user) async {
   final queryBuilder = QueryBuilder<Store>(Store())
-    ..whereMatchesQuery("user", QueryBuilder(user));
+    ..whereMatchesQuery("user", QueryBuilder(user))
+    ..includeObject(["storeType"]);
 
   final response = await _parseRequest(queryBuilder.query);
 
@@ -70,7 +71,6 @@ final connectionProvider = FutureProvider<Parse>(
       appId,
       serverUrl,
       clientKey: clientKey,
-      debug: true,
       fileDirectory: (await getExternalStorageDirectory()).path,
     );
   },
