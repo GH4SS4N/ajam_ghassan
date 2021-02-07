@@ -108,6 +108,8 @@ class AjamVerification extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ScopedReader watch) {
     final accountType = watch(accountTypeProvider).state;
+    final loading = watch(loadingProvider).state;
+
     return Expanded(
       child: Padding(
         padding: EdgeInsets.all(30),
@@ -145,33 +147,47 @@ class AjamVerification extends ConsumerWidget {
               ),
             ),
             InkWell(
-              onTap: () {
-                var username = context.read(currentUserProvider).state.username;
-                var password = context.read(_otp).state;
-                otpVerify(username, password)
-                    .then((value) => context.read(signupStepProvider).state =
-                        SignupStep.profile)
-                    .catchError((e) => exceptionSnackbar(context, e));
-              },
+              onTap: loading
+                  ? null
+                  : () async {
+                      context.read(loadingProvider).state = true;
+
+                      var username =
+                          context.read(currentUserProvider).state.username;
+                      var password = context.read(_otp).state;
+
+                      try {
+                        await otpVerify(username, password);
+                        context.read(signupStepProvider).state =
+                            SignupStep.profile;
+                      } catch (e) {
+                        exceptionSnackbar(context, e);
+                      }
+
+                      context.read(loadingProvider).state = false;
+                    },
               child: Container(
-                //width: ,
                 height: 60,
                 margin: EdgeInsets.all(20),
                 padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      "تسجيل",
-                      style: TextStyle(color: Colors.white, fontSize: 20),
-                    ),
+                    loading
+                        ? CircularProgressIndicator()
+                        : Text(
+                            "تسجيل",
+                            style: TextStyle(color: Colors.white, fontSize: 20),
+                          ),
                   ],
                 ),
                 decoration: BoxDecoration(
-                    color: darkblue,
-                    border: Border(),
-                    borderRadius: BorderRadius.all(Radius.circular(50))),
-                //color: Colors.white,
+                  color: darkblue,
+                  border: Border(),
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(50),
+                  ),
+                ),
               ),
             ),
           ],
@@ -223,25 +239,23 @@ class Ajamlogin extends ConsumerWidget {
             ),
             Spacer(),
             InkWell(
-              onTap: () {
-                // set loading to true
-                context.read(loadingProvider).state = true;
+              onTap: loading
+                  ? null
+                  : () async {
+                      // set loading to true
+                      context.read(loadingProvider).state = true;
 
-                login(context.read(currentUserProvider).state)
-                    .then(
-                      (newUser) {
+                      try {
+                        final newUser = await loginAndRequestOTP(
+                            context.read(currentUserProvider).state);
                         context.read(currentUserProvider).state = newUser;
                         context.read(signupStepProvider).state =
-                            SignupStep.profile;
-                      },
-                    )
-                    // if there was an error loging-in or requesting an OTP
-                    .catchError((e) => exceptionSnackbar(context, e))
-                    // when everything is done, set loading to false
-                    .whenComplete(
-                      () => context.read(loadingProvider).state = false,
-                    );
-              },
+                            SignupStep.verification;
+                      } catch (e) {
+                        exceptionSnackbar(context, e);
+                      }
+                      context.read(loadingProvider).state = false;
+                    },
               child: Container(
                 height: 60,
                 margin: EdgeInsets.all(20),
@@ -285,14 +299,14 @@ class AjamProfile extends ConsumerWidget {
   }
 }
 
-final storeProvider = StateProvider.autoDispose<Store>((ref) {
+final StateProvider storeProvider = StateProvider<Store>((ref) {
+  final user = ref.watch(currentUserProvider).state;
+
   getStoreTypes().then((types) {
     ref.read(storeTypesProvider).state = types;
 
-    getStoredStore(ref.watch(currentUserProvider).state).then((store) {
-      print("Store store type!");
-      print(store.storeType);
-      ref.read(storeTypeSelectedProvider).state = store.storeType.get("name");
+    getStoredStore(user).then((store) {
+      ref.read(storeTypeSelectedProvider).state = store.storeType?.get("name");
       ref.read(storeProvider).state = store;
     });
   });
@@ -317,6 +331,10 @@ class StoreProfile extends ConsumerWidget {
   Future validate(BuildContext context) async {
     if (_formKey.currentState.validate()) {
       final store = context.read(storeProvider).state;
+
+      print("STORE BITCH");
+      print(store);
+
       if (store.logo == null) {
         exceptionSnackbar(context, provideImages);
         return;
@@ -328,8 +346,7 @@ class StoreProfile extends ConsumerWidget {
           storeTypes.firstWhere((type) => type.get("name") == selectedType);
 
       try {
-        final newStore = await saveParseObject(store);
-        context.read(storeProvider).state = newStore;
+        await saveParseObject(store);
         context.read(signupStepProvider).state = SignupStep.done;
       } catch (e) {
         print(e);
@@ -461,11 +478,13 @@ class StoreProfile extends ConsumerWidget {
                   ),
                 ),
                 InkWell(
-                  onTap: () {
-                    context.read(loadingProvider).state = true;
-                    validate(context);
-                    context.read(loadingProvider).state = false;
-                  },
+                  onTap: loading
+                      ? null
+                      : () async {
+                          context.read(loadingProvider).state = true;
+                          await validate(context);
+                          context.read(loadingProvider).state = false;
+                        },
                   child: Container(
                     height: 60,
                     margin: EdgeInsets.all(20),
@@ -495,11 +514,14 @@ class StoreProfile extends ConsumerWidget {
   }
 }
 
-final captainProvider = StateProvider.autoDispose<Captain>((ref) {
-  final newCaptain = Captain();
-  newCaptain.user = ref.read(currentUserProvider).state;
+final StateProvider<Captain> captainProvider = StateProvider<Captain>((ref) {
+  final user = ref.watch(currentUserProvider).state;
 
-  return newCaptain;
+  getStoredCaptain(user).then((captain) {
+    ref.read(captainProvider).state = captain;
+  });
+
+  return null;
 });
 
 class CaptainProfile extends ConsumerWidget {
@@ -519,6 +541,7 @@ class CaptainProfile extends ConsumerWidget {
   Future validate(BuildContext context) async {
     if (_formKey.currentState.validate()) {
       final captain = context.read(captainProvider).state;
+
       try {
         if (captain.photo == null ||
             captain.carBack == null ||
@@ -527,8 +550,7 @@ class CaptainProfile extends ConsumerWidget {
           throw provideImages;
         }
 
-        final newCaptain = await saveParseObject(captain);
-        context.read(captainProvider).state = newCaptain;
+        await saveParseObject(captain);
         context.read(signupStepProvider).state = SignupStep.done;
       } catch (e) {
         exceptionSnackbar(context, e);
@@ -542,13 +564,11 @@ class CaptainProfile extends ConsumerWidget {
     final loading = watch(loadingProvider).state;
 
     return SingleChildScrollView(
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 30),
-        child: watch(storedCaptainProvider).when(
-          data: (storedCaptain) {
-            if (storedCaptain != null)
-              context.read(captainProvider).state = storedCaptain;
-            return Column(
+        child: Container(
+      padding: EdgeInsets.symmetric(horizontal: 30),
+      child: captain == null
+          ? Center(child: CircularProgressIndicator())
+          : Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
@@ -582,16 +602,19 @@ class CaptainProfile extends ConsumerWidget {
                                 width: 20,
                                 padding: EdgeInsets.fromLTRB(2, 0, 0, 2),
                                 child: IconButton(
-                                    color: green,
-                                    icon: Icon(
-                                      Icons.create_sharp,
-                                      size: 10,
-                                    ),
-                                    onPressed: () {
-                                      filePicker().then((file) =>
-                                          context.read(captainProvider).state =
-                                              captain..photo = ParseFile(file));
-                                    }),
+                                  color: green,
+                                  icon: Icon(
+                                    Icons.create_sharp,
+                                    size: 10,
+                                  ),
+                                  onPressed: () => filePicker().then(
+                                    (file) {
+                                      if (file != null)
+                                        context.read(captainProvider).state =
+                                            captain..photo = ParseFile(file);
+                                    },
+                                  ),
+                                ),
                                 decoration: BoxDecoration(
                                     boxShadow: [
                                       BoxShadow(
@@ -711,21 +734,24 @@ class CaptainProfile extends ConsumerWidget {
                                               padding: EdgeInsets.fromLTRB(
                                                   2, 0, 0, 2),
                                               child: IconButton(
-                                                  //iconSize: 15,
-                                                  color: green,
-                                                  icon: Icon(
-                                                    Icons.create_sharp,
-                                                    size: 10,
-                                                  ),
-                                                  onPressed: () {
-                                                    filePicker().then((file) =>
-                                                        context
-                                                            .read(
-                                                                captainProvider)
-                                                            .state = captain
-                                                          ..carFront =
-                                                              ParseFile(file));
-                                                  }),
+                                                //iconSize: 15,
+                                                color: green,
+                                                icon: Icon(
+                                                  Icons.create_sharp,
+                                                  size: 10,
+                                                ),
+                                                onPressed: () =>
+                                                    filePicker().then(
+                                                  (file) {
+                                                    if (file != null)
+                                                      context
+                                                          .read(captainProvider)
+                                                          .state = captain
+                                                        ..carFront =
+                                                            ParseFile(file);
+                                                  },
+                                                ),
+                                              ),
                                               decoration: BoxDecoration(
                                                   boxShadow: [
                                                     BoxShadow(
@@ -775,21 +801,24 @@ class CaptainProfile extends ConsumerWidget {
                                               padding: EdgeInsets.fromLTRB(
                                                   2, 0, 0, 2),
                                               child: IconButton(
-                                                  //iconSize: 15,
-                                                  color: green,
-                                                  icon: Icon(
-                                                    Icons.create_sharp,
-                                                    size: 10,
-                                                  ),
-                                                  onPressed: () {
-                                                    filePicker().then((file) =>
-                                                        context
-                                                            .read(
-                                                                captainProvider)
-                                                            .state = captain
-                                                          ..carBack =
-                                                              ParseFile(file));
-                                                  }),
+                                                //iconSize: 15,
+                                                color: green,
+                                                icon: Icon(
+                                                  Icons.create_sharp,
+                                                  size: 10,
+                                                ),
+                                                onPressed: () =>
+                                                    filePicker().then(
+                                                  (file) {
+                                                    if (file != null)
+                                                      context
+                                                          .read(captainProvider)
+                                                          .state = captain
+                                                        ..carBack =
+                                                            ParseFile(file);
+                                                  },
+                                                ),
+                                              ),
                                               decoration: BoxDecoration(
                                                   boxShadow: [
                                                     BoxShadow(
@@ -839,21 +868,24 @@ class CaptainProfile extends ConsumerWidget {
                                               padding: EdgeInsets.fromLTRB(
                                                   2, 0, 0, 2),
                                               child: IconButton(
-                                                  //iconSize: 15,
-                                                  color: green,
-                                                  icon: Icon(
-                                                    Icons.create_sharp,
-                                                    size: 10,
-                                                  ),
-                                                  onPressed: () {
-                                                    filePicker().then((file) =>
-                                                        context
-                                                            .read(
-                                                                captainProvider)
-                                                            .state = captain
-                                                          ..carInside =
-                                                              ParseFile(file));
-                                                  }),
+                                                //iconSize: 15,
+                                                color: green,
+                                                icon: Icon(
+                                                  Icons.create_sharp,
+                                                  size: 10,
+                                                ),
+                                                onPressed: () =>
+                                                    filePicker().then(
+                                                  (file) {
+                                                    if (file != null)
+                                                      context
+                                                          .read(captainProvider)
+                                                          .state = captain
+                                                        ..carInside =
+                                                            ParseFile(file);
+                                                  },
+                                                ),
+                                              ),
                                               decoration: BoxDecoration(
                                                   boxShadow: [
                                                     BoxShadow(
@@ -887,11 +919,13 @@ class CaptainProfile extends ConsumerWidget {
                   ),
                 ),
                 InkWell(
-                  onTap: () async {
-                    context.read(loadingProvider).state = true;
-                    await validate(context);
-                    context.read(loadingProvider).state = false;
-                  },
+                  onTap: loading
+                      ? null
+                      : () async {
+                          context.read(loadingProvider).state = true;
+                          await validate(context);
+                          context.read(loadingProvider).state = false;
+                        },
                   child: Container(
                     //width: ,
                     height: 60,
@@ -917,18 +951,8 @@ class CaptainProfile extends ConsumerWidget {
                   ),
                 ),
               ],
-            );
-          },
-          error: (e, stack) {
-            print(e);
-            print(stack);
-            exceptionSnackbar(context, e);
-            return Center(child: Icon(Icons.error));
-          },
-          loading: () => Center(child: CircularProgressIndicator()),
-        ),
-      ),
-    );
+            ),
+    ));
   }
 }
 
@@ -1053,6 +1077,9 @@ class AjamAppBar extends ConsumerWidget {
                   child: IconButton(
                     onPressed: () {
                       logout();
+                      context.read(currentUserProvider).state =
+                          ParseUser("", "", "");
+                      context.read(storeProvider).state = null;
                       Navigator.pop(context);
                     },
                     icon: Icon(
@@ -1091,7 +1118,7 @@ class AjamAppBar extends ConsumerWidget {
   }
 }
 
-final _passwordMatchProvider = StateProvider.autoDispose<String>((ref) => "");
+final _passwordMatchProvider = StateProvider<String>((ref) => "");
 final RegExp emailRegex = new RegExp(
   r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$",
   caseSensitive: false,
@@ -1103,7 +1130,9 @@ class AjamForm extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ScopedReader watch) {
-    void submit(BuildContext context) {
+    final loading = watch(loadingProvider).state;
+
+    Future submit(BuildContext context) async {
       if (_formKey.currentState.validate()) {
         final user = context.read(currentUserProvider).state;
         final match = context.read(_passwordMatchProvider).state;
@@ -1113,12 +1142,16 @@ class AjamForm extends ConsumerWidget {
         } else {
           user.set("country", context.read(countrySelectedProvider).state);
           user.set("city", context.read(citySelectedProvider).state);
-          signupAndRequestOTP(context.read(currentUserProvider).state)
-              .then((user) {
+
+          try {
+            final user = await signupAndRequestOTP(
+                context.read(currentUserProvider).state);
             context.read(currentUserProvider).state = user;
             context.read(_passwordMatchProvider).dispose();
             context.read(signupStepProvider).state = SignupStep.verification;
-          }).catchError((e) => exceptionSnackbar(context, e));
+          } catch (e) {
+            exceptionSnackbar(context, e);
+          }
         }
       }
     }
@@ -1293,7 +1326,13 @@ class AjamForm extends ConsumerWidget {
                   height: 30,
                 ),
                 InkWell(
-                  onTap: () => submit(context),
+                  onTap: loading
+                      ? null
+                      : () async {
+                          context.read(loadingProvider).state = true;
+                          await submit(context);
+                          context.read(loadingProvider).state = false;
+                        },
                   child: Container(
                     //width: ,
                     height: 60,
@@ -1301,12 +1340,15 @@ class AjamForm extends ConsumerWidget {
                     padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          " تسجيل ",
-                          style: TextStyle(color: Colors.white, fontSize: 20),
-                        ),
-                      ],
+                      children: loading
+                          ? CircularProgressIndicator()
+                          : [
+                              Text(
+                                " تسجيل ",
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 20),
+                              ),
+                            ],
                     ),
                     decoration: BoxDecoration(
                         color: darkblue,
@@ -1422,5 +1464,3 @@ class ImageCard extends StatelessWidget {
     );
   }
 }
-
-//lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll

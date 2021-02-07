@@ -111,27 +111,26 @@ class AccountAlertDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ScopedReader watch) {
     final accountType = watch(accountTypeProvider).state;
-    final consumeLoading = watch(loadingProvider);
+    final loading = watch(loadingProvider).state;
 
-    void submit(BuildContext context) {
+    Future submit(BuildContext context) async {
       if (_formKey.currentState.validate()) {
-        consumeLoading.state = true;
         // get phone number which is username
         final username = context.read(currentUserProvider).state.username;
-        userByPhoneNumber(username).then(
-          (user) {
-            // set loading to false
-            consumeLoading.state = false;
-            context.read(signupStepProvider).state =
-                user == null ? SignupStep.form : SignupStep.login;
-            Navigator.pop(context);
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SignupSteps(),
-                ));
-          },
-        ).catchError((e) => exceptionSnackbar(context, e));
+
+        try {
+          final user = await userByPhoneNumber(username);
+          context.read(signupStepProvider).state =
+              user == null ? SignupStep.form : SignupStep.login;
+          Navigator.pop(context);
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SignupSteps(),
+              ));
+        } catch (e) {
+          exceptionSnackbar(context, e);
+        }
       }
     }
 
@@ -186,15 +185,18 @@ class AccountAlertDialog extends ConsumerWidget {
       ),
       actions: [
         FlatButton(
-          onPressed: () {
-            // set loading to true
-            submit(context);
-          },
+          onPressed: loading
+              ? null
+              : () async {
+                  context.read(loadingProvider).state = true;
+                  await submit(context);
+                  context.read(loadingProvider).state = false;
+                },
           color: darkblue,
           shape: new RoundedRectangleBorder(
             borderRadius: new BorderRadius.circular(50.0),
           ),
-          child: !consumeLoading.state
+          child: !loading
               ? Text("التالي", style: TextStyle(color: Colors.white))
               : SizedBox(
                   height: 20, width: 20, child: CircularProgressIndicator()),

@@ -11,7 +11,7 @@ import 'package:parse_server_sdk/parse_server_sdk.dart';
 
 enum SignupStep { login, form, verification, profile, done }
 
-final signupStepProvider = StateProvider<SignupStep>((ref) => SignupStep.form);
+final signupStepProvider = StateProvider<SignupStep>((ref) => SignupStep.login);
 
 enum AccountType { captain, owner, none }
 
@@ -19,7 +19,7 @@ final accountTypeProvider =
     StateProvider<AccountType>((ref) => AccountType.owner);
 
 final currentUserProvider =
-    StateProvider<ParseUser>((ref) => ParseUser("562648168", "", null));
+    StateProvider<ParseUser>((ref) => ParseUser("", "", null));
 
 final otpPassword = StateProvider<String>((ref) => "");
 final storeTypesProvider = StateProvider<List<ParseObject>>((ref) => []);
@@ -31,7 +31,7 @@ final storeTypesProvider = StateProvider<List<ParseObject>>((ref) => []);
 
 Future<Store> getStoredStore(ParseUser user) async {
   final queryBuilder = QueryBuilder<Store>(Store())
-    ..whereMatchesQuery("user", QueryBuilder(user))
+    ..whereEqualTo("user", user)
     ..includeObject(["storeType"]);
 
   final response = await _parseRequest(queryBuilder.query);
@@ -45,25 +45,23 @@ Future<Store> getStoredStore(ParseUser user) async {
   return store;
 }
 
-final storedCaptainProvider = FutureProvider<Captain>(
-  (ref) async {
-    final queryBuilder = QueryBuilder<Captain>(Captain())
-      ..whereEqualTo("user", ref.watch(currentUserProvider).state.objectId);
+Future<Captain> getStoredCaptain(ParseUser user) async {
+  final queryBuilder = QueryBuilder<Captain>(Captain())
+    ..whereEqualTo("user", user);
 
-    final response = await _parseRequest(queryBuilder.query);
+  final response = await _parseRequest(queryBuilder.query);
 
-    final Captain captain = response.results?.elementAt(0);
+  final Captain captain = response.results?.elementAt(0);
 
-    if (captain == null) return null;
+  if (captain == null) return Captain()..user = user;
 
-    captain.photo = await captain.photo.download();
-    captain.carFront = await captain.carFront.download();
-    captain.carBack = await captain.carBack.download();
-    captain.carInside = await captain.carInside.download();
+  captain.photo = await captain.photo.download();
+  captain.carFront = await captain.carFront.download();
+  captain.carBack = await captain.carBack.download();
+  captain.carInside = await captain.carInside.download();
 
-    return captain;
-  },
-);
+  return captain;
+}
 
 final imageProvider =
     FutureProvider.family<File, ParseFile>((ref, image) async {
@@ -81,9 +79,11 @@ final connectionProvider = FutureProvider<Parse>(
       serverUrl,
       clientKey: clientKey,
       fileDirectory: (await getExternalStorageDirectory()).path,
+      debug: true,
     );
   },
 );
+
 /*
  * Future functions
  */
