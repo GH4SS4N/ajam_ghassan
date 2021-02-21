@@ -246,11 +246,11 @@ class Ajamlogin extends ConsumerWidget {
                       context.read(loadingProvider).state = true;
 
                       try {
-                        final newUser = await loginAndRequestOTP(
+                        final newUser = await login(
                             context.read(currentUserProvider).state);
                         context.read(currentUserProvider).state = newUser;
                         context.read(signupStepProvider).state =
-                            SignupStep.verification;
+                            SignupStep.profile;
                       } catch (e) {
                         exceptionSnackbar(context, e);
                       }
@@ -1144,11 +1144,10 @@ class AjamForm extends ConsumerWidget {
           user.set("city", context.read(citySelectedProvider).state);
 
           try {
-            final user = await signupAndRequestOTP(
-                context.read(currentUserProvider).state);
+            final user = await signup(context.read(currentUserProvider).state);
             context.read(currentUserProvider).state = user;
             context.read(_passwordMatchProvider).dispose();
-            context.read(signupStepProvider).state = SignupStep.verification;
+            context.read(signupStepProvider).state = SignupStep.profile;
           } catch (e) {
             exceptionSnackbar(context, e);
           }
@@ -1341,7 +1340,7 @@ class AjamForm extends ConsumerWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: loading
-                          ? CircularProgressIndicator()
+                          ? [CircularProgressIndicator()]
                           : [
                               Text(
                                 " تسجيل ",

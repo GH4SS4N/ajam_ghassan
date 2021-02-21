@@ -79,7 +79,6 @@ final connectionProvider = FutureProvider<Parse>(
       serverUrl,
       clientKey: clientKey,
       fileDirectory: (await getExternalStorageDirectory()).path,
-      debug: true,
     );
   },
 );
@@ -109,7 +108,7 @@ Future<ParseUser> userByPhoneNumber(String username) async {
 }
 
 Future<ParseUser> signupAndRequestOTP(ParseUser user) async {
-  ParseUser newUser = await _signup(user);
+  ParseUser newUser = await signup(user);
 
   try {
     await _otpRequest(newUser.username);
@@ -135,7 +134,7 @@ Future<ParseUser> loginAndRequestOTP(ParseUser user) async {
 }
 
 // resturns ParseUser
-Future<ParseUser> _signup(ParseUser user) async {
+Future<ParseUser> signup(ParseUser user) async {
   final response = await _parseRequest(
     () async => await user.signUp(allowWithoutEmail: true),
   );
