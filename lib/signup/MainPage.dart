@@ -1,7 +1,6 @@
 import 'package:ajam/data/Exceptions.dart';
 import 'package:ajam/data/requests.dart';
 import 'package:ajam/signup/signupSteps.dart';
-//import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -274,16 +273,17 @@ class AccountTypeCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               // adds circular borders to the top of the image
-              ClipRRect(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(5),
-                  topRight: Radius.circular(5),
-                ),
-                child: Image.asset(
-                  imageName,
-                  fit: BoxFit.cover,
-                  width: 300,
-                  height: 150,
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(5),
+                    topRight: Radius.circular(5),
+                  ),
+                  child: Image.asset(
+                    imageName,
+                    fit: BoxFit.cover,
+                    width: 300,
+                  ),
                 ),
               ),
               Padding(

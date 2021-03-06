@@ -1,6 +1,6 @@
 import 'package:ajam/main.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/all.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final storeTypeSelectedProvider = StateProvider<String>((ref) => null);
 final countrySelectedProvider = StateProvider<String>((ref) => "السعودية");

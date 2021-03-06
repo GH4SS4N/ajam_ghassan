@@ -11,7 +11,8 @@ import 'package:parse_server_sdk/parse_server_sdk.dart';
 
 enum SignupStep { login, form, verification, profile, done }
 
-final signupStepProvider = StateProvider<SignupStep>((ref) => SignupStep.login);
+final signupStepProvider =
+    StateProvider<SignupStep>((ref) => SignupStep.verification);
 
 enum AccountType { captain, owner, none }
 
@@ -73,14 +74,12 @@ final imageProvider =
 });
 
 final connectionProvider = FutureProvider<Parse>(
-  (ref) async {
-    return await Parse().initialize(
-      appId,
-      serverUrl,
-      clientKey: clientKey,
-      fileDirectory: (await getExternalStorageDirectory()).path,
-    );
-  },
+  (ref) async => await Parse().initialize(
+    appId,
+    serverUrl,
+    clientKey: clientKey,
+    fileDirectory: (await getExternalStorageDirectory()).path,
+  ),
 );
 
 /*

@@ -10,7 +10,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/all.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:ajam/data/requests.dart';
 
@@ -33,9 +33,6 @@ class SignupSteps extends ConsumerWidget {
               Material(
                 elevation: 5,
                 child: Container(
-                  height: step == SignupStep.profile || step == SignupStep.done
-                      ? 130
-                      : 300,
                   width: double.infinity,
                   color: lightgrey,
                   child: Column(
@@ -83,17 +80,15 @@ class SignupSteps extends ConsumerWidget {
                   ),
                 ),
               ),
-              step == SignupStep.login || step == SignupStep.verification
-                  ? step == SignupStep.login
-                      ? Ajamlogin()
-                      : AjamVerification()
-                  : step == SignupStep.profile || step == SignupStep.done
-                      ? step == SignupStep.done
-                          ? AjamDone()
-                          : AjamProfile()
+              step == SignupStep.login
+                  ? Ajamlogin()
+                  : step == SignupStep.form
+                      ? AjamForm()
                       : step == SignupStep.verification
                           ? AjamVerification()
-                          : AjamForm()
+                          : step == SignupStep.profile
+                              ? AjamProfile()
+                              : AjamDone(),
             ],
           ),
         ),
@@ -107,7 +102,6 @@ final _otp = StateProvider<String>((ref) => "");
 class AjamVerification extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ScopedReader watch) {
-    final accountType = watch(accountTypeProvider).state;
     final loading = watch(loadingProvider).state;
 
     return Expanded(
@@ -176,7 +170,7 @@ class AjamVerification extends ConsumerWidget {
                     loading
                         ? CircularProgressIndicator()
                         : Text(
-                            "تسجيل",
+                            "تأكيد",
                             style: TextStyle(color: Colors.white, fontSize: 20),
                           ),
                   ],
@@ -210,15 +204,12 @@ class Ajamlogin extends ConsumerWidget {
           children: [
             Spacer(),
             Container(
-              // color: orange,
               child: Column(
                 children: [
                   TextFormField(
                     obscureText: true,
                     onChanged: (text) =>
                         context.read(currentUserProvider).state.password = text,
-                    // maxLength: 10,
-                    // maxLengthEnforced: true,
                     decoration: InputDecoration(
                       prefixIcon: Icon(Icons.lock),
                       //icon: Icon(Icons.phone),
@@ -246,11 +237,11 @@ class Ajamlogin extends ConsumerWidget {
                       context.read(loadingProvider).state = true;
 
                       try {
-                        final newUser = await login(
+                        final newUser = await loginAndRequestOTP(
                             context.read(currentUserProvider).state);
                         context.read(currentUserProvider).state = newUser;
                         context.read(signupStepProvider).state =
-                            SignupStep.profile;
+                            SignupStep.verification;
                       } catch (e) {
                         exceptionSnackbar(context, e);
                       }
@@ -282,7 +273,6 @@ class Ajamlogin extends ConsumerWidget {
         ),
       ),
     );
-    ;
   }
 }
 
@@ -360,156 +350,158 @@ class StoreProfile extends ConsumerWidget {
     final store = watch(storeProvider).state;
     final loading = watch(loadingProvider).state;
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 30),
-      child: store == null
-          ? Center(child: CircularProgressIndicator())
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  margin: EdgeInsets.fromLTRB(0, 30, 0, 0),
-                  child: Column(
-                    children: [
-                      Text("لنقم باضافة بعض معلومات المتجر"),
-                      SizedBox(
-                        height: 30,
-                      ),
-                      Container(
-                        width: 80,
-                        height: 80,
-                        // color: Colors.red,
-                        child: Stack(
-                          children: [
-                            ClipOval(
-                              child: CircleAvatar(
-                                minRadius: 35,
-                                backgroundColor: darkblue,
-                                child: store.logo == null
-                                    ? Icon(Icons.image)
-                                    : Image.file(store.logo.file),
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 0,
-                              left: 0,
-                              child: Container(
-                                height: 20,
-                                width: 20,
-                                padding: EdgeInsets.fromLTRB(2, 0, 0, 2),
-                                child: IconButton(
-                                    //iconSize: 15,
-                                    color: orange,
-                                    icon: Icon(
-                                      Icons.create_sharp,
-                                      size: 10,
-                                    ),
-                                    onPressed: () {
-                                      filePicker().then((file) {
-                                        if (file != null)
-                                          context.read(storeProvider).state =
-                                              store..logo = ParseFile(file);
-                                      });
-                                    }),
-                                decoration: BoxDecoration(
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.5),
-                                        spreadRadius: 2,
-                                        blurRadius: 7,
-                                        offset: Offset(
-                                            0, 3), // changes position of shadow
-                                      ),
-                                    ],
-                                    color: Colors.white,
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(50))),
-                              ),
-                            ),
-                          ],
+    return SingleChildScrollView(
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 30),
+        child: store == null
+            ? Center(child: CircularProgressIndicator())
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    margin: EdgeInsets.fromLTRB(0, 30, 0, 0),
+                    child: Column(
+                      children: [
+                        Text("لنقم باضافة بعض معلومات المتجر"),
+                        SizedBox(
+                          height: 30,
                         ),
-                      ),
-                      Text("الشعار"),
-                      SizedBox(height: 30),
-                      Form(
-                        key: _formKey,
-                        child: TextFormField(
-                          onChanged: (text) =>
-                              context.read(storeProvider).state.name = text,
-                          validator: (value) {
-                            if (value.isEmpty) return "يجب إدخال اسم للمتجر";
-                          },
-                          initialValue: store.name,
-                          decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.store),
-                            hintText: "اسم المتجر",
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(50),
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).primaryColor),
-                            ),
-                            errorBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(50),
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).primaryColor),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(50),
-                              borderSide: BorderSide(color: lightgrey),
+                        Container(
+                          width: 80,
+                          height: 80,
+                          // color: Colors.red,
+                          child: Stack(
+                            children: [
+                              ClipOval(
+                                child: CircleAvatar(
+                                  minRadius: 35,
+                                  backgroundColor: darkblue,
+                                  child: store.logo == null
+                                      ? Icon(Icons.image)
+                                      : Image.file(store.logo.file),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                left: 0,
+                                child: Container(
+                                  height: 20,
+                                  width: 20,
+                                  padding: EdgeInsets.fromLTRB(2, 0, 0, 2),
+                                  child: IconButton(
+                                      //iconSize: 15,
+                                      color: orange,
+                                      icon: Icon(
+                                        Icons.create_sharp,
+                                        size: 10,
+                                      ),
+                                      onPressed: () {
+                                        filePicker().then((file) {
+                                          if (file != null)
+                                            context.read(storeProvider).state =
+                                                store..logo = ParseFile(file);
+                                        });
+                                      }),
+                                  decoration: BoxDecoration(
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.5),
+                                          spreadRadius: 2,
+                                          blurRadius: 7,
+                                          offset: Offset(0,
+                                              3), // changes position of shadow
+                                        ),
+                                      ],
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(50))),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text("الشعار"),
+                        SizedBox(height: 30),
+                        Form(
+                          key: _formKey,
+                          child: TextFormField(
+                            onChanged: (text) =>
+                                context.read(storeProvider).state.name = text,
+                            validator: (value) {
+                              if (value.isEmpty) return "يجب إدخال اسم للمتجر";
+                            },
+                            initialValue: store.name,
+                            decoration: InputDecoration(
+                              prefixIcon: Icon(Icons.store),
+                              hintText: "اسم المتجر",
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(50),
+                                borderSide: BorderSide(
+                                    color: Theme.of(context).primaryColor),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(50),
+                                borderSide: BorderSide(
+                                    color: Theme.of(context).primaryColor),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(50),
+                                borderSide: BorderSide(color: lightgrey),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      SizedBox(
-                        height: 30,
-                      ),
+                        SizedBox(
+                          height: 30,
+                        ),
 
-                      //dropdown (countries)
-                      AjamDropdown(
-                        options: context
-                            .read(storeTypesProvider)
-                            .state
-                            .map<String>((e) => e.get("name"))
-                            .toList(),
-                        selectedState: storeTypeSelectedProvider,
-                      ),
-                      // Expanded(child: null),
-                    ],
-                  ),
-                ),
-                InkWell(
-                  onTap: loading
-                      ? null
-                      : () async {
-                          context.read(loadingProvider).state = true;
-                          await validate(context);
-                          context.read(loadingProvider).state = false;
-                        },
-                  child: Container(
-                    height: 60,
-                    margin: EdgeInsets.all(20),
-                    padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        loading
-                            ? CircularProgressIndicator()
-                            : Text(
-                                " حفظ ",
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 20),
-                              ),
+                        //dropdown (countries)
+                        AjamDropdown(
+                          options: context
+                              .read(storeTypesProvider)
+                              .state
+                              .map<String>((e) => e.get("name"))
+                              .toList(),
+                          selectedState: storeTypeSelectedProvider,
+                        ),
+                        // Expanded(child: null),
                       ],
                     ),
-                    decoration: BoxDecoration(
-                        color: darkblue,
-                        border: Border(),
-                        borderRadius: BorderRadius.all(Radius.circular(50))),
-                    //color: Colors.white,
                   ),
-                ),
-              ],
-            ),
+                  InkWell(
+                    onTap: loading
+                        ? null
+                        : () async {
+                            context.read(loadingProvider).state = true;
+                            await validate(context);
+                            context.read(loadingProvider).state = false;
+                          },
+                    child: Container(
+                      height: 60,
+                      margin: EdgeInsets.all(20),
+                      padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          loading
+                              ? CircularProgressIndicator()
+                              : Text(
+                                  " حفظ ",
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 20),
+                                ),
+                        ],
+                      ),
+                      decoration: BoxDecoration(
+                          color: darkblue,
+                          border: Border(),
+                          borderRadius: BorderRadius.all(Radius.circular(50))),
+                      //color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+      ),
     );
   }
 }
@@ -1052,19 +1044,21 @@ class AjamAppBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ScopedReader watch) {
     final accountType = watch(accountTypeProvider).state;
-    final signup_Step = watch(signupStepProvider).state;
+    final signupStep = watch(signupStepProvider).state;
 
     return Container(
       padding: EdgeInsets.fromLTRB(13, 0, 0, 0),
       height: 60,
       child: Row(
         children: [
-          signup_Step == SignupStep.form ||
-                  signup_Step == SignupStep.verification
+          signupStep == SignupStep.form || signupStep == SignupStep.verification
               ? Padding(
                   padding: const EdgeInsets.fromLTRB(0, 0, 13, 0),
                   child: IconButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      context.read(loadingProvider).state = false;
+                    },
                     icon: Icon(
                       Icons.arrow_back_ios,
                       color: Theme.of(context).primaryColor,
@@ -1077,9 +1071,9 @@ class AjamAppBar extends ConsumerWidget {
                   child: IconButton(
                     onPressed: () {
                       logout();
+                      context.read(loadingProvider).state = false;
                       context.read(currentUserProvider).state =
                           ParseUser("", "", "");
-                      context.read(storeProvider).state = null;
                       Navigator.pop(context);
                     },
                     icon: Icon(
@@ -1144,10 +1138,11 @@ class AjamForm extends ConsumerWidget {
           user.set("city", context.read(citySelectedProvider).state);
 
           try {
-            final user = await signup(context.read(currentUserProvider).state);
+            final user = await signupAndRequestOTP(
+                context.read(currentUserProvider).state);
             context.read(currentUserProvider).state = user;
             context.read(_passwordMatchProvider).dispose();
-            context.read(signupStepProvider).state = SignupStep.profile;
+            context.read(signupStepProvider).state = SignupStep.verification;
           } catch (e) {
             exceptionSnackbar(context, e);
           }
@@ -1202,13 +1197,11 @@ class AjamForm extends ConsumerWidget {
                 ),
                 //password\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
                 TextFormField(
-                  validator: (value) {
-                    if (value.isEmpty || value.length < 8) {
-                      return "يجب إدخال كلمة مرور من 8 حروف على الأقل";
-                    } else {
-                      context.read(currentUserProvider).state.password = value;
-                      return null;
-                    }
+                  validator: (value) => value.isEmpty || value.length < 8
+                      ? "يجب إدخال كلمة مرور من 8 حروف على الأقل"
+                      : null,
+                  onChanged: (value) {
+                    context.read(currentUserProvider).state.password = value;
                   },
                   obscureText: true,
                   enableSuggestions: false,
@@ -1424,38 +1417,6 @@ class ImageCard extends StatelessWidget {
                         ],
                       ),
               ),
-              // Padding(
-              //   padding: const EdgeInsets.all(12.0),
-              //   // lays out the text and then the icon to the left
-              //   child: Row(
-              //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //     crossAxisAlignment: CrossAxisAlignment.start,
-              //     children: [
-              //       // the text is expanded because we want it to take all the
-              //       // horizontal space it needs, pushing the icon to the end
-              //       Expanded(
-              //         // lays out the header and the body below it
-              //         child: Column(
-              //           crossAxisAlignment: CrossAxisAlignment.start,
-              //           children: [
-              //             Text(
-              //               header,
-              //               style: TextStyle(
-              //                 fontWeight: FontWeight.bold,
-              //                 color: Colors.white,
-              //                 fontSize: 24,
-              //               ),
-              //             ),
-              //             Text(body, style: TextStyle(color: Colors.white)),
-              //           ],
-              //         ),
-              //       ),
-              //       // this icon has a fixed size. While its sibling, the
-              //       // expanded widget, will fill the remaining space
-              //       Icon(this.iconData, size: 60, color: Colors.white),
-              //     ],
-              //   ),
-              // )
             ],
           ),
         ),

@@ -1,16 +1,11 @@
 import 'package:ajam/EditableMenu.dart';
 import 'package:ajam/Infopage.dart';
-import 'package:ajam/data/Exceptions.dart';
 import 'package:ajam/data/requests.dart';
 import 'package:ajam/signup/MainPage.dart';
 import 'package:ajam/signup/signupSteps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/all.dart';
-import 'package:parse_server_sdk/parse_server_sdk.dart';
-
-import 'signup/MainPage.dart';
-//import 'package:time_range_picker/time_range_picker.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
   runApp(ProviderScope(child: MyApp()));
